@@ -32,9 +32,9 @@ class GuiDisplayModel(QObject):
         super().__init__(parent)
 
         # 私有属性
-        self._status_text = "状态: 未连接"
+        self._status_text = "Status: Disconnected"
         self._emotion_path = ""  # 表情资源路径（GIF/图片）或 emoji 字符
-        self._tts_text = "待命"
+        self._tts_text = "Idle"
         self._button_text = "开始对话"  # 自动模式按钮文本
         self._mode_text = "手动对话"  # 模式切换按钮文本
         self._auto_mode = False  # 是否自动模式
@@ -109,32 +109,32 @@ class GuiDisplayModel(QObject):
     # 便捷方法
     def update_status(self, status: str, connected: bool):
         """
-        更新状态文本和连接状态.
+        Update状态文本和Connect状态.
         """
-        self.statusText = f"状态: {status}"
+        self.statusText = f"Status: {status}"
         self._is_connected = connected
 
     def update_text(self, text: str):
         """
-        更新 TTS 文本.
+        Update TTS 文本.
         """
         self.ttsText = text
 
     def update_emotion(self, emotion_path: str):
         """
-        更新表情路径.
+        Update表情路径.
         """
         self.emotionPath = emotion_path
 
     def update_button_text(self, text: str):
         """
-        更新自动模式按钮文本.
+        Update自动模式按钮文本.
         """
         self.buttonText = text
 
     def update_mode_text(self, text: str):
         """
-        更新模式按钮文本.
+        Update模式按钮文本.
         """
         self.modeText = text
 
@@ -144,6 +144,6 @@ class GuiDisplayModel(QObject):
         """
         self.autoMode = is_auto
         if is_auto:
-            self.modeText = "自动对话"
+            self.modeText = "Auto Conversation"
         else:
             self.modeText = "手动对话"

@@ -53,7 +53,7 @@ class MarriageAnalyzer:
         gender_key = "male" if gender == 1 else "female"
         target_gods = self.marriage_gods[gender_key]
 
-        # 统一获取天干数据格式
+        # 统一Get天干数据格式
         year_gan = self._extract_gan_from_pillar(eight_char_data.get("year", {}))
         month_gan = self._extract_gan_from_pillar(eight_char_data.get("month", {}))
         day_gan = self._extract_gan_from_pillar(eight_char_data.get("day", {}))
@@ -70,7 +70,7 @@ class MarriageAnalyzer:
             if gan and gan != day_gan:
                 ten_god = get_ten_gods_relation(day_gan, gan)
                 if ten_god in target_gods:
-                    # 获取更详细的分析
+                    # Get更详细的分析
                     star_info = {
                         "position": position,
                         "star": ten_god,
@@ -296,7 +296,7 @@ class MarriageAnalyzer:
         self, eight_char_data: Dict[str, Any], gender: int
     ) -> List[str]:
         """
-        获取有利的结婚年份 - 使用完整的地支关系分析.
+        Get有利的结婚年份 - 使用完整的地支关系分析.
         """
         from .professional_data import YIMA_XING, ZHI_RELATIONS, ZHI_SAN_HE, ZHI_SAN_HUI
 
@@ -480,7 +480,7 @@ class MarriageAnalyzer:
             eight_char_data.get("hour", {}).get("earth_branch", {}).get("name", ""),
         ]
 
-        # 获取日支（配偶宫）
+        # Get日支（配偶宫）
         day_zhi = zhi_list[2] if len(zhi_list) > 2 else ""
 
         # 使用专业函数分析地支组合
@@ -667,7 +667,7 @@ class MarriageAnalyzer:
 
     def _get_basic_spouse_features(self, day_zhi: str) -> Dict[str, str]:
         """
-        获取基础配偶特征.
+        Get基础配偶特征.
         """
         spouse_features = {
             "子": {
@@ -1024,7 +1024,7 @@ class MarriageAnalyzer:
 
     def _get_marriage_advice(self, score: int) -> str:
         """
-        获取婚姻建议.
+        Get婚姻建议.
         """
         if score >= 85:
             return "婚姻运势良好，注重沟通交流，关系可长久稳定"
@@ -1069,7 +1069,7 @@ class MarriageAnalyzer:
 
     def _get_gan_element(self, gan: str) -> str:
         """
-        获取天干五行.
+        Get天干五行.
         """
         from .professional_data import GAN_WUXING
 
@@ -1103,7 +1103,7 @@ class MarriageAnalyzer:
 
     def _get_hidden_strength(self, gan_type: str) -> str:
         """
-        获取藏干强度.
+        Get藏干强度.
         """
         strength_map = {"主气": "强", "中气": "中", "余气": "弱"}
         return strength_map.get(gan_type, "弱")
@@ -1147,7 +1147,7 @@ class MarriageAnalyzer:
 
     def _get_seasonal_strength(self, gan: str, month_gan: str) -> str:
         """
-        获取季节性力量.
+        Get季节性力量.
         """
         from .professional_data import GAN_WUXING, WUXING_RELATIONS
 
@@ -1292,7 +1292,7 @@ class MarriageAnalyzer:
             "distribution": distribution_desc,
             "potential": potential,
             "suggestions": (
-                suggestions if suggestions else ["夫妻星配置良好，感情发展顺利"]
+                suggestions if suggestions else ["夫妻星Configuration良好，感情发展顺利"]
             ),
         }
 
@@ -1303,7 +1303,7 @@ _marriage_analyzer = None
 
 def get_marriage_analyzer():
     """
-    获取婚姻分析器单例.
+    Get婚姻分析器单例.
     """
     global _marriage_analyzer
     if _marriage_analyzer is None:

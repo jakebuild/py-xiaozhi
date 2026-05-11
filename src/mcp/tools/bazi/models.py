@@ -25,7 +25,7 @@ class HeavenStem:
 
     def get_ten_star(self, other_stem: "HeavenStem") -> str:
         """
-        获取十神关系.
+        Get十神关系.
         """
         # 实现十神逻辑
         return self._calculate_ten_star(other_stem)

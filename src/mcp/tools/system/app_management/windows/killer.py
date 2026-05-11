@@ -1,6 +1,6 @@
-"""Windows系统应用程序关闭器.
+"""Windows系统应用程序Close器.
 
-提供Windows平台下的应用程序关闭功能
+提供Windows平台下的应用程序Close功能
 """
 
 import json
@@ -68,15 +68,15 @@ def list_running_applications(filter_name: str = "") -> List[Dict[str, Any]]:
 
                 if apps:
                     logger.info(
-                        f"[WindowsKiller] PowerShell扫描成功，找到 {len(apps)} 个进程"
+                        f"[WindowsKiller] PowerShell扫描Success，找到 {len(apps)} 个进程"
                     )
                     return _deduplicate_and_sort_apps(apps)
 
             except json.JSONDecodeError as e:
-                logger.debug(f"[WindowsKiller] PowerShell JSON解析失败: {e}")
+                logger.debug(f"[WindowsKiller] PowerShell JSONParseFailure: {e}")
 
     except (subprocess.TimeoutExpired, subprocess.SubprocessError) as e:
-        logger.warning(f"[WindowsKiller] PowerShell进程扫描失败: {e}")
+        logger.warning(f"[WindowsKiller] PowerShell进程扫描Failure: {e}")
 
     # 方法2: 使用简化的tasklist命令（备选方案）
     if not apps:
@@ -95,7 +95,7 @@ def list_running_applications(filter_name: str = "") -> List[Dict[str, Any]]:
 
                 for line in lines:
                     try:
-                        # 解析CSV格式
+                        # ParseCSV格式
                         parts = [p.strip('"') for p in line.split('","')]
                         if len(parts) >= 2:
                             image_name = parts[0]
@@ -129,12 +129,12 @@ def list_running_applications(filter_name: str = "") -> List[Dict[str, Any]]:
 
             if apps:
                 logger.info(
-                    f"[WindowsKiller] tasklist扫描成功，找到 {len(apps)} 个进程"
+                    f"[WindowsKiller] tasklist扫描Success，找到 {len(apps)} 个进程"
                 )
                 return _deduplicate_and_sort_apps(apps)
 
         except (subprocess.TimeoutExpired, subprocess.SubprocessError) as e:
-            logger.warning(f"[WindowsKiller] tasklist命令失败: {e}")
+            logger.warning(f"[WindowsKiller] tasklist命令Failure: {e}")
 
     # 方法3: 使用wmic作为最后备选
     if not apps:
@@ -187,7 +187,7 @@ def list_running_applications(filter_name: str = "") -> List[Dict[str, Any]]:
                             continue
 
         except (subprocess.TimeoutExpired, subprocess.SubprocessError) as e:
-            logger.warning(f"[WindowsKiller] wmic进程扫描失败: {e}")
+            logger.warning(f"[WindowsKiller] wmic进程扫描Failure: {e}")
 
     return _deduplicate_and_sort_apps(apps)
 
@@ -195,54 +195,54 @@ def list_running_applications(filter_name: str = "") -> List[Dict[str, Any]]:
 def kill_application_group(
     apps: List[Dict[str, Any]], app_name: str, force: bool
 ) -> bool:
-    """按分组关闭Windows应用程序.
+    """按分组CloseWindows应用程序.
 
     Args:
         apps: 匹配的应用程序进程列表
         app_name: 应用程序名称
-        force: 是否强制关闭
+        force: 是否强制Close
 
     Returns:
-        bool: 关闭是否成功
+        bool: Close是否Success
     """
     try:
         logger.info(
-            f"[WindowsKiller] 开始分组关闭Windows应用: {app_name}, 找到 {len(apps)} 个相关进程"
+            f"[WindowsKiller] 开始分组CloseWindows应用: {app_name}, 找到 {len(apps)} 个相关进程"
         )
 
-        # 1. 首先尝试按应用名称整体关闭（推荐方法）
+        # 1. 首先尝试按应用名称整体Close（推荐方法）
         success = _kill_by_image_name(apps, force)
         if success:
-            logger.info(f"[WindowsKiller] 成功通过应用名称整体关闭: {app_name}")
+            logger.info(f"[WindowsKiller] Success通过应用名称整体Close: {app_name}")
             return True
 
-        # 2. 如果整体关闭失败，尝试智能分组关闭
+        # 2. 如果整体CloseFailure，尝试智能分组Close
         success = _kill_by_process_groups(apps, force)
         if success:
-            logger.info(f"[WindowsKiller] 成功通过进程分组关闭: {app_name}")
+            logger.info(f"[WindowsKiller] Success通过进程分组Close: {app_name}")
             return True
 
-        # 3. 最后尝试逐个关闭（兜底方案）
+        # 3. 最后尝试逐个Close（兜底方案）
         success = _kill_individual_processes(apps, force)
-        logger.info(f"[WindowsKiller] 通过逐个关闭完成: {app_name}, 成功: {success}")
+        logger.info(f"[WindowsKiller] 通过逐个CloseComplete: {app_name}, Success: {success}")
         return success
 
     except Exception as e:
-        logger.error(f"[WindowsKiller] Windows分组关闭失败: {e}")
+        logger.error(f"[WindowsKiller] Windows分组CloseFailure: {e}")
         return False
 
 
 def kill_application(pid: int, force: bool) -> bool:
     """
-    在Windows上关闭单个应用程序.
+    在Windows上Close单个应用程序.
     """
     try:
         logger.info(
-            f"[WindowsKiller] 尝试关闭Windows应用程序，PID: {pid}, 强制关闭: {force}"
+            f"[WindowsKiller] 尝试CloseWindows应用程序，PID: {pid}, 强制Close: {force}"
         )
 
         if force:
-            # 强制关闭
+            # 强制Close
             result = subprocess.run(
                 ["taskkill", "/PID", str(pid), "/F"],
                 capture_output=True,
@@ -250,7 +250,7 @@ def kill_application(pid: int, force: bool) -> bool:
                 timeout=10,
             )
         else:
-            # 正常关闭
+            # 正常Close
             result = subprocess.run(
                 ["taskkill", "/PID", str(pid)],
                 capture_output=True,
@@ -261,16 +261,16 @@ def kill_application(pid: int, force: bool) -> bool:
         success = result.returncode == 0
 
         if success:
-            logger.info(f"[WindowsKiller] 成功关闭应用程序，PID: {pid}")
+            logger.info(f"[WindowsKiller] SuccessClose应用程序，PID: {pid}")
         else:
             logger.warning(
-                f"[WindowsKiller] 关闭应用程序失败，PID: {pid}, 错误信息: {result.stderr}"
+                f"[WindowsKiller] Failed to close application，PID: {pid}, Error信息: {result.stderr}"
             )
 
         return success
 
     except (subprocess.TimeoutExpired, subprocess.SubprocessError) as e:
-        logger.error(f"[WindowsKiller] Windows关闭应用程序异常，PID: {pid}, 错误: {e}")
+        logger.error(f"[WindowsKiller] WindowsClose应用程序Exception，PID: {pid}, Error: {e}")
         return False
 
 
@@ -356,17 +356,17 @@ def _deduplicate_and_sort_apps(apps: List[Dict[str, Any]]) -> List[Dict[str, Any
     unique_apps.sort(key=lambda x: x["name"].lower())
 
     logger.info(
-        f"[WindowsKiller] 进程扫描完成，去重后找到 {len(unique_apps)} 个应用程序"
+        f"[WindowsKiller] 进程扫描Complete，去重后找到 {len(unique_apps)} 个应用程序"
     )
     return unique_apps
 
 
 def _kill_by_image_name(apps: List[Dict[str, Any]], force: bool) -> bool:
     """
-    通过镜像名称整体关闭应用程序.
+    通过镜像名称整体Close应用程序.
     """
     try:
-        # 获取主要的进程名称
+        # Get主要的进程名称
         image_names = set()
         for app in apps:
             name = app.get("name", "")
@@ -379,14 +379,14 @@ def _kill_by_image_name(apps: List[Dict[str, Any]], force: bool) -> bool:
         if not image_names:
             return False
 
-        logger.info(f"[WindowsKiller] 尝试通过镜像名称关闭: {list(image_names)}")
+        logger.info(f"[WindowsKiller] 尝试通过镜像名称Close: {list(image_names)}")
 
-        # 按镜像名称关闭
+        # 按镜像名称Close
         success_count = 0
         for image_name in image_names:
             try:
                 if force:
-                    cmd = ["taskkill", "/IM", image_name, "/F", "/T"]  # /T关闭子进程树
+                    cmd = ["taskkill", "/IM", image_name, "/F", "/T"]  # /TClose子进程树
                 else:
                     cmd = ["taskkill", "/IM", image_name, "/T"]
 
@@ -394,25 +394,25 @@ def _kill_by_image_name(apps: List[Dict[str, Any]], force: bool) -> bool:
 
                 if result.returncode == 0:
                     success_count += 1
-                    logger.info(f"[WindowsKiller] 成功关闭镜像: {image_name}")
+                    logger.info(f"[WindowsKiller] SuccessClose镜像: {image_name}")
                 else:
                     logger.debug(
-                        f"[WindowsKiller] 关闭镜像失败: {image_name}, 错误: {result.stderr}"
+                        f"[WindowsKiller] Close镜像Failure: {image_name}, Error: {result.stderr}"
                     )
 
             except (subprocess.TimeoutExpired, subprocess.SubprocessError) as e:
-                logger.debug(f"[WindowsKiller] 关闭镜像异常: {image_name}, 错误: {e}")
+                logger.debug(f"[WindowsKiller] Close镜像Exception: {image_name}, Error: {e}")
 
         return success_count > 0
 
     except Exception as e:
-        logger.debug(f"[WindowsKiller] 镜像名称关闭异常: {e}")
+        logger.debug(f"[WindowsKiller] 镜像名称CloseException: {e}")
         return False
 
 
 def _kill_by_process_groups(apps: List[Dict[str, Any]], force: bool) -> bool:
     """
-    按进程组智能关闭应用程序.
+    按进程组智能Close应用程序.
     """
     try:
         # 按进程名称分组
@@ -429,7 +429,7 @@ def _kill_by_process_groups(apps: List[Dict[str, Any]], force: bool) -> bool:
             f"[WindowsKiller] 识别出 {len(process_groups)} 个进程组: {list(process_groups.keys())}"
         )
 
-        # 为每个组识别主进程并关闭
+        # 为每个组识别主进程并Close
         success_count = 0
         for group_name, group_apps in process_groups.items():
             try:
@@ -437,37 +437,37 @@ def _kill_by_process_groups(apps: List[Dict[str, Any]], force: bool) -> bool:
                 main_process = _find_main_process(group_apps)
 
                 if main_process:
-                    # 关闭主进程（会带动子进程）
+                    # Close主进程（会带动子进程）
                     pid = main_process.get("pid")
                     if pid:
                         success = kill_application(pid, force)
                         if success:
                             success_count += 1
                             logger.info(
-                                f"[WindowsKiller] 成功关闭进程组 {group_name} 的主进程 (PID: {pid})"
+                                f"[WindowsKiller] SuccessClose进程组 {group_name} 的主进程 (PID: {pid})"
                             )
                         else:
-                            # 如果主进程关闭失败，尝试关闭组内所有进程
+                            # 如果主进程CloseFailure，尝试Close组内所有进程
                             for app in group_apps:
                                 if kill_application(app.get("pid"), force):
                                     success_count += 1
 
             except Exception as e:
-                logger.debug(f"[WindowsKiller] 关闭进程组失败: {group_name}, 错误: {e}")
+                logger.debug(f"[WindowsKiller] Close进程组Failure: {group_name}, Error: {e}")
 
         return success_count > 0
 
     except Exception as e:
-        logger.debug(f"[WindowsKiller] 进程组关闭异常: {e}")
+        logger.debug(f"[WindowsKiller] 进程组CloseException: {e}")
         return False
 
 
 def _kill_individual_processes(apps: List[Dict[str, Any]], force: bool) -> bool:
     """
-    逐个关闭进程（兜底方案）.
+    逐个Close进程（兜底方案）.
     """
     try:
-        logger.info(f"[WindowsKiller] 开始逐个关闭 {len(apps)} 个进程")
+        logger.info(f"[WindowsKiller] 开始逐个Close {len(apps)} 个进程")
 
         success_count = 0
         for app in apps:
@@ -477,22 +477,22 @@ def _kill_individual_processes(apps: List[Dict[str, Any]], force: bool) -> bool:
                 if success:
                     success_count += 1
                     logger.debug(
-                        f"[WindowsKiller] 成功关闭进程: {app.get('name')} (PID: {pid})"
+                        f"[WindowsKiller] SuccessClose进程: {app.get('name')} (PID: {pid})"
                     )
 
         logger.info(
-            f"[WindowsKiller] 逐个关闭完成，成功关闭 {success_count}/{len(apps)} 个进程"
+            f"[WindowsKiller] 逐个CloseComplete，SuccessClose {success_count}/{len(apps)} 个进程"
         )
         return success_count > 0
 
     except Exception as e:
-        logger.error(f"[WindowsKiller] 逐个关闭异常: {e}")
+        logger.error(f"[WindowsKiller] 逐个CloseException: {e}")
         return False
 
 
 def _get_base_process_name(process_name: str) -> str:
     """
-    获取基础进程名称（用于分组）.
+    Get基础进程名称（用于分组）.
     """
     try:
         return AppMatcher.get_process_group(process_name)

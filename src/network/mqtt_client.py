@@ -16,7 +16,7 @@ class MqttClient:
         on_publish=None,
         on_disconnect=None,
     ):
-        """初始化 MqttClient 实例。
+        """Initialization MqttClient 实例。
 
         :param server: MQTT 服务器地址
         :param port: MQTT 服务器端口
@@ -25,10 +25,10 @@ class MqttClient:
         :param subscribe_topic: 订阅的主题
         :param publish_topic: 发布的主题
         :param client_id: 客户端 ID，默认为 "PythonClient"
-        :param on_connect: 自定义的连接回调函数
+        :param on_connect: 自定义的Connect回调函数
         :param on_message: 自定义的消息接收回调函数
         :param on_publish: 自定义的消息发布回调函数
-        :param on_disconnect: 自定义的断开连接回调函数
+        :param on_disconnect: 自定义的DisconnectConnect回调函数
         """
         self.server = server
         self.port = port
@@ -60,15 +60,15 @@ class MqttClient:
 
     def _on_connect(self, client, userdata, flags, rc, properties=None):
         """
-        默认的连接回调函数。
+        默认的Connect回调函数。
         """
         if rc == 0:
-            print("✅ 成功连接到 MQTT 服务器")
-            # 连接成功后，自动订阅主题
+            print("✅ SuccessConnect到 MQTT 服务器")
+            # ConnectSuccess后，自动订阅主题
             client.subscribe(self.subscribe_topic)
             print(f"📥 已订阅主题：{self.subscribe_topic}")
         else:
-            print(f"❌ 连接失败，错误码：{rc}")
+            print(f"❌ Connection failed，Error码：{rc}")
 
     def _on_message(self, client, userdata, msg):
         """
@@ -86,23 +86,23 @@ class MqttClient:
 
     def _on_disconnect(self, client, userdata, rc, properties=None):
         """
-        默认的断开连接回调函数。
+        默认的DisconnectConnect回调函数。
         """
-        print("🔌 与 MQTT 服务器的连接已断开")
+        print("🔌 与 MQTT 服务器的Connect已Disconnect")
 
     def connect(self):
         """
-        连接到 MQTT 服务器。
+        Connect到 MQTT 服务器。
         """
         try:
             self.client.connect(self.server, self.port, 60)
-            print(f"🔗 正在连接到服务器 {self.server}:{self.port}")
+            print(f"🔗 Connecting到服务器 {self.server}:{self.port}")
         except Exception as e:
-            print(f"❌ 连接失败，错误: {e}")
+            print(f"❌ Connection failed，Error: {e}")
 
     def start(self):
         """
-        启动客户端并开始网络循环。
+        Start客户端并开始网络循环。
         """
         self.client.loop_start()
 
@@ -113,17 +113,17 @@ class MqttClient:
         result = self.client.publish(self.publish_topic, message)
         status = result.rc
         if status == 0:
-            print(f"✅ 成功发布到主题 `{self.publish_topic}`")
+            print(f"✅ Success发布到主题 `{self.publish_topic}`")
         else:
-            print(f"❌ 发布失败，错误码：{status}")
+            print(f"❌ 发布Failure，Error码：{status}")
 
     def stop(self):
         """
-        停止网络循环并断开连接。
+        Stop网络循环并DisconnectConnect。
         """
         self.client.loop_stop()
         self.client.disconnect()
-        print("🛑 客户端已停止连接")
+        print("🛑 客户端已StopConnect")
 
 
 if __name__ == "__main__":
@@ -131,12 +131,12 @@ if __name__ == "__main__":
     # 自定义的回调函数
     # def custom_on_connect(client, userdata, flags, rc, properties=None):
     #     if rc == 0:
-    #         print("🎉 自定义回调：成功连接到 MQTT 服务器")
+    #         print("🎉 自定义回调：SuccessConnect到 MQTT 服务器")
     #         topic_data = userdata['subscribe_topic']
     #         client.subscribe(topic_data)
     #         print(f"📥 自定义回调：已订阅主题：{topic_data}")
     #     else:
-    #         print(f"❌ 自定义回调：连接失败，错误码：{rc}")
+    #         print(f"❌ 自定义回调：Connection failed，Error码：{rc}")
     #
     # def custom_on_message(client, userdata, msg):
     #     topic = msg.topic
@@ -147,7 +147,7 @@ if __name__ == "__main__":
     #     print(f"📤 自定义回调：消息已发布，消息 ID：{mid}")
     #
     # def custom_on_disconnect(client, userdata, rc, properties=None):
-    #     print("🔌 自定义回调：与 MQTT 服务器的连接已断开")
+    #     print("🔌 自定义回调：与 MQTT 服务器的Connect已Disconnect")
     #
     # # 创建 MqttClient 实例，传入自定义的回调函数
     # mqtt_client = MqttClient(
@@ -169,10 +169,10 @@ if __name__ == "__main__":
     #     {'subscribe_topic': mqtt_client.subscribe_topic}
     # )
     #
-    # # 连接到 MQTT 服务器
+    # # Connect到 MQTT 服务器
     # mqtt_client.connect()
     #
-    # # 启动客户端
+    # # Start客户端
     # mqtt_client.start()
     #
     # try:
@@ -181,7 +181,7 @@ if __name__ == "__main__":
     #         message = input("输入要发布的消息：")
     #         mqtt_client.publish(message)
     # except KeyboardInterrupt:
-    #     print("\n⛔️ 程序已停止")
+    #     print("\n⛔️ 程序已Stop")
     # finally:
-    #     # 停止并断开连接
+    #     # Stop并DisconnectConnect
     #     mqtt_client.stop()

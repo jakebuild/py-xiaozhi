@@ -70,7 +70,7 @@ class AppMatcher:
         "iterm": ["iterm", "iterm2"],
     }
 
-    # 进程分组映射（用于关闭时分组）
+    # 进程分组映射（用于Close时分组）
     PROCESS_GROUPS = {
         "chrome": "chrome",
         "googlechrome": "chrome",
@@ -135,7 +135,7 @@ class AppMatcher:
     @classmethod
     def get_process_group(cls, process_name: str) -> str:
         """
-        获取进程所属的分组.
+        Get进程所属的分组.
         """
         normalized = cls.normalize_name(process_name)
 
@@ -250,10 +250,10 @@ class AppMatcher:
 
 
 async def get_cached_applications(force_refresh: bool = False) -> List[Dict[str, Any]]:
-    """获取缓存的应用程序列表.
+    """Get缓存的应用程序列表.
 
     Args:
-        force_refresh: 是否强制刷新缓存
+        force_refresh: 是否强制Refresh缓存
 
     Returns:
         应用程序列表
@@ -279,7 +279,7 @@ async def get_cached_applications(force_refresh: bool = False) -> List[Dict[str,
 
         from .scanner import scan_installed_applications
 
-        logger.info("[AppUtils] 刷新应用程序缓存")
+        logger.info("[AppUtils] Refresh应用程序缓存")
         result_json = await scan_installed_applications(
             {"force_refresh": force_refresh}
         )
@@ -289,17 +289,17 @@ async def get_cached_applications(force_refresh: bool = False) -> List[Dict[str,
             _cached_applications = result.get("applications", [])
             _cache_timestamp = current_time
             logger.info(
-                f"[AppUtils] 应用程序缓存已刷新，找到 {len(_cached_applications)} 个应用"
+                f"[AppUtils] 应用程序缓存已Refresh，找到 {len(_cached_applications)} 个应用"
             )
             return _cached_applications
         else:
             logger.warning(
-                f"[AppUtils] 应用程序扫描失败: {result.get('message', '未知错误')}"
+                f"[AppUtils] 应用程序扫描Failure: {result.get('message', '未知Error')}"
             )
             return _cached_applications or []
 
     except Exception as e:
-        logger.error(f"[AppUtils] 刷新应用程序缓存失败: {e}")
+        logger.error(f"[AppUtils] Refresh应用程序缓存Failure: {e}")
         return _cached_applications or []
 
 
@@ -317,7 +317,7 @@ async def find_best_matching_app(
     """
     try:
         if app_type == "running":
-            # 获取正在运行的应用程序
+            # Get正在运行的应用程序
             import json
 
             from .scanner import list_running_applications
@@ -330,7 +330,7 @@ async def find_best_matching_app(
 
             applications = result.get("applications", [])
         else:
-            # 获取已安装的应用程序
+            # Get已安装的应用程序
             applications = await get_cached_applications()
 
         if not applications:
@@ -356,7 +356,7 @@ async def find_best_matching_app(
         return best_app
 
     except Exception as e:
-        logger.error(f"[AppUtils] 查找匹配应用失败: {e}")
+        logger.error(f"[AppUtils] 查找匹配应用Failure: {e}")
         return None
 
 
@@ -373,7 +373,7 @@ def clear_app_cache():
 
 def get_cache_info() -> Dict[str, Any]:
     """
-    获取缓存信息.
+    Get缓存信息.
     """
 
     current_time = time.time()
@@ -389,7 +389,7 @@ def get_cache_info() -> Dict[str, Any]:
 
 
 def get_system_scanner():
-    """根据当前系统获取对应的扫描器模块.
+    """根据当前系统Get对应的扫描器模块.
 
     Returns:
         对应系统的扫描器模块

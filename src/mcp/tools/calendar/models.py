@@ -83,4 +83,4 @@ class CalendarEvent:
             reminder_dt = start_dt - timedelta(minutes=self.reminder_minutes)
             return reminder_dt.isoformat()
         except Exception:
-            return self.start_time  # 如果计算失败，返回开始时间
+            return self.start_time  # 如果计算Failure，返回开始时间

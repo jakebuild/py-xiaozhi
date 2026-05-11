@@ -14,12 +14,12 @@ class BaziManager:
 
     def __init__(self):
         """
-        初始化八字管理器.
+        Initialization八字管理器.
         """
 
     def init_tools(self, add_tool, PropertyList, Property, PropertyType):
         """
-        初始化并注册所有八字命理工具。
+        Initialization并Register所有八字命理工具。
         """
         from .marriage_tools import (
             analyze_marriage_compatibility,
@@ -33,7 +33,7 @@ class BaziManager:
             get_solar_times,
         )
 
-        # 获取八字详情（主要工具）
+        # Get八字详情（主要工具）
         bazi_detail_props = PropertyList(
             [
                 Property("solar_datetime", PropertyType.STRING, default_value=""),
@@ -47,7 +47,7 @@ class BaziManager:
         add_tool(
             (
                 "self.bazi.get_bazi_detail",
-                "根据时间（公历或农历）、性别来获取完整的八字命理分析信息。"
+                "根据时间（公历或农历）、性别来Get完整的八字命理分析信息。"
                 "这是八字分析的核心工具，提供全面的命理解读。\n"
                 "使用场景：\n"
                 "1. 个人八字命理分析\n"
@@ -59,19 +59,19 @@ class BaziManager:
                 "- 支持公历和农历时间输入\n"
                 "- 提供完整的四柱八字信息\n"
                 "- 包含神煞、大运、刑冲合会分析\n"
-                "- 支持不同的子时起法配置\n"
+                "- 支持不同的子时起法Configuration\n"
                 "\n参数说明：\n"
                 "  solar_datetime: 公历时间，ISO格式，如'2008-03-01T13:00:00+08:00'\n"
                 "  lunar_datetime: 农历时间，如'2000-5-5 12:00:00'\n"
                 "  gender: 性别，0=女性，1=男性\n"
-                "  eight_char_provider_sect: 早晚子时配置，1=23:00-23:59日干支为明天，2=为当天（默认）\n"
+                "  eight_char_provider_sect: 早晚子时Configuration，1=23:00-23:59日干支为明天，2=为当天（默认）\n"
                 "\n注意：solar_datetime和lunar_datetime必须传且只传其中一个",
                 bazi_detail_props,
                 get_bazi_detail,
             )
         )
 
-        # 根据八字获取公历时间
+        # 根据八字Get公历时间
         solar_times_props = PropertyList([Property("bazi", PropertyType.STRING)])
         add_tool(
             (
@@ -85,7 +85,7 @@ class BaziManager:
                 "\n功能特点：\n"
                 "- 基于八字干支组合推算时间\n"
                 "- 支持多个可能时间的查询\n"
-                "- 时间范围可配置\n"
+                "- 时间范围可Configuration\n"
                 "\n参数说明：\n"
                 "  bazi: 八字，按年柱、月柱、日柱、时柱顺序，用空格隔开\n"
                 "        例如：'戊寅 己未 己卯 辛未'",
@@ -94,14 +94,14 @@ class BaziManager:
             )
         )
 
-        # 获取黄历信息
+        # Get黄历信息
         chinese_calendar_props = PropertyList(
             [Property("solar_datetime", PropertyType.STRING, default_value="")]
         )
         add_tool(
             (
                 "self.bazi.get_chinese_calendar",
-                "获取指定公历时间（默认今天）的中国传统黄历信息。"
+                "Get指定公历时间（默认今天）的中国传统黄历信息。"
                 "提供完整的农历日期、干支、宜忌、神煞方位等信息。\n"
                 "使用场景：\n"
                 "1. 查询今日黄历宜忌\n"
@@ -124,7 +124,7 @@ class BaziManager:
             )
         )
 
-        # 根据农历时间获取八字（已弃用）
+        # 根据农历时间Get八字（已弃用）
         lunar_bazi_props = PropertyList(
             [
                 Property("lunar_datetime", PropertyType.STRING),
@@ -137,18 +137,18 @@ class BaziManager:
         add_tool(
             (
                 "self.bazi.build_bazi_from_lunar_datetime",
-                "根据农历时间、性别来获取八字信息。\n"
+                "根据农历时间、性别来Get八字信息。\n"
                 "注意：此工具已弃用，建议使用get_bazi_detail替代。\n"
                 "\n参数说明：\n"
                 "  lunar_datetime: 农历时间，例如：'2000-5-15 12:00:00'\n"
                 "  gender: 性别，0=女性，1=男性\n"
-                "  eight_char_provider_sect: 早晚子时配置",
+                "  eight_char_provider_sect: 早晚子时Configuration",
                 lunar_bazi_props,
                 build_bazi_from_lunar_datetime,
             )
         )
 
-        # 根据阳历时间获取八字（已弃用）
+        # 根据阳历时间Get八字（已弃用）
         solar_bazi_props = PropertyList(
             [
                 Property("solar_datetime", PropertyType.STRING),
@@ -161,12 +161,12 @@ class BaziManager:
         add_tool(
             (
                 "self.bazi.build_bazi_from_solar_datetime",
-                "根据阳历时间、性别来获取八字信息。\n"
+                "根据阳历时间、性别来Get八字信息。\n"
                 "注意：此工具已弃用，建议使用get_bazi_detail替代。\n"
                 "\n参数说明：\n"
                 "  solar_datetime: 公历时间，ISO格式，如'2008-03-01T13:00:00+08:00'\n"
                 "  gender: 性别，0=女性，1=男性\n"
-                "  eight_char_provider_sect: 早晚子时配置",
+                "  eight_char_provider_sect: 早晚子时Configuration",
                 solar_bazi_props,
                 build_bazi_from_solar_datetime,
             )
@@ -204,7 +204,7 @@ class BaziManager:
                 "  solar_datetime: 公历时间，ISO格式，如'2008-03-01T13:00:00+08:00'\\n"
                 "  lunar_datetime: 农历时间，如'2000-5-5 12:00:00'\\n"
                 "  gender: 性别，0=女性，1=男性\\n"
-                "  eight_char_provider_sect: 早晚子时配置\\n"
+                "  eight_char_provider_sect: 早晚子时Configuration\\n"
                 "\\n注意：solar_datetime和lunar_datetime必须传且只传其中一个",
                 marriage_timing_props,
                 analyze_marriage_timing,
@@ -233,7 +233,7 @@ class BaziManager:
                 "1. 婚前合婚分析\\n"
                 "2. 评估双方匹配度\\n"
                 "3. 识别相处中的问题\\n"
-                "4. 获取婚姻改善建议\\n"
+                "4. Get婚姻改善建议\\n"
                 "5. 选择最佳结婚时机\\n"
                 "\\n功能特点：\\n"
                 "- 五行匹配分析\\n"
@@ -259,7 +259,7 @@ _bazi_manager = None
 
 def get_bazi_manager() -> BaziManager:
     """
-    获取八字管理器单例。
+    Get八字管理器单例。
     """
     global _bazi_manager
     if _bazi_manager is None:

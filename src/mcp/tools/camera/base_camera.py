@@ -22,11 +22,11 @@ class BaseCamera(ABC):
 
     def __init__(self):
         """
-        初始化基础摄像头.
+        Initialization基础摄像头.
         """
         self.jpeg_data = {"buf": b"", "len": 0}  # 图像的JPEG字节数据  # 字节数据长度
 
-        # 从配置中读取相机参数
+        # 从Configuration中读取相机参数
         config = ConfigManager.get_instance()
         self.camera_index = config.get_config("CAMERA.camera_index", 0)
         self.frame_width = config.get_config("CAMERA.frame_width", 640)
@@ -46,7 +46,7 @@ class BaseCamera(ABC):
 
     def get_jpeg_data(self) -> Dict[str, any]:
         """
-        获取JPEG数据.
+        GetJPEG数据.
         """
         return self.jpeg_data
 

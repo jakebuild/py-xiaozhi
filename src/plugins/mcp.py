@@ -9,7 +9,7 @@ logger = get_logger(__name__)
 
 class McpPlugin(Plugin):
     name = "mcp"
-    priority = 20  # 工具注册，需要较早初始化
+    priority = 20  # 工具Register，需要较早Initialization
 
     def __init__(self) -> None:
         super().__init__()
@@ -31,7 +31,7 @@ class McpPlugin(Plugin):
 
         try:
             self._server.set_send_callback(_send)
-            # 注册通用工具（包含 calendar 工具）。提醒服务的运行改由 CalendarPlugin 管理
+            # Register通用工具（包含 calendar 工具）。提醒服务的运行改由 CalendarPlugin 管理
             self._server.add_common_tools()
         except Exception:
             pass

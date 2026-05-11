@@ -8,7 +8,7 @@ from enum import Enum
 from pathlib import Path
 from typing import List, Tuple, Union, cast
 
-# 获取日志记录器
+# Get日志记录器
 from src.utils.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -76,11 +76,11 @@ def get_lib_path(system: PLATFORM, arch_name: str):
 
 
 def get_lib_name(system: PLATFORM, local: bool = True) -> Union[str, List[str]]:
-    """获取库名称.
+    """Get库名称.
 
     Args:
         system (PLATFORM): 平台
-        local (bool, optional): 是否获取本地名称(str), 默认为 True. 如果为 False, 则获取系统名称列表(List).
+        local (bool, optional): 是否Get本地名称(str), 默认为 True. 如果为 False, 则Get系统名称列表(List).
 
     Returns:
         str | List: 库名称
@@ -97,7 +97,7 @@ def get_lib_name(system: PLATFORM, local: bool = True) -> Union[str, List[str]]:
 
 def get_system_info() -> Tuple[str, str]:
     """
-    获取当前系统信息.
+    Get当前系统信息.
     """
     # 标准化系统名称
     system = get_platform()
@@ -111,7 +111,7 @@ def get_system_info() -> Tuple[str, str]:
 
 def get_search_paths(system: PLATFORM, arch_name: str) -> List[Tuple[Path, str]]:
     """
-    获取库文件搜索路径列表（使用统一的资源查找器）
+    Get库文件Search路径列表（使用统一的资源查找器）
     """
     from .resource_finder import find_libs_dir, get_project_root
 
@@ -152,10 +152,10 @@ def get_search_paths(system: PLATFORM, arch_name: str) -> List[Tuple[Path, str]]
     project_root = get_project_root()
     search_paths.append((project_root, lib_name))
 
-    # 打印所有搜索路径，帮助调试
+    # 打印所有Search路径，帮助调试
     for dir_path, filename in search_paths:
         full_path = dir_path / filename
-        logger.debug(f"搜索路径: {full_path} (存在: {full_path.exists()})")
+        logger.debug(f"Search路径: {full_path} (存在: {full_path.exists()})")
     return search_paths
 
 
@@ -167,10 +167,10 @@ def find_system_opus() -> str:
     lib_path = ""
 
     try:
-        # 获取系统上opus库的名称
+        # Get系统上opus库的名称
         lib_names = cast(List[str], get_lib_name(system, False))
 
-        # 尝试加载每个可能的名称
+        # 尝试Load每个可能的名称
         for lib_name in lib_names:
             try:
                 # 导入ctypes.util以使用find_library函数
@@ -183,17 +183,17 @@ def find_system_opus() -> str:
                     logger.info(f"在系统路径中找到opus库: {lib_path}")
                     break
                 else:
-                    # 直接尝试加载库名
+                    # 直接尝试Load库名
                     ctypes.cdll.LoadLibrary(lib_name)
                     lib_path = lib_name
-                    logger.info(f"直接加载系统opus库: {lib_name}")
+                    logger.info(f"直接Load系统opus库: {lib_name}")
                     break
             except Exception as e:
-                logger.debug(f"加载系统库 {lib_name} 失败: {e}")
+                logger.debug(f"Load系统库 {lib_name} Failure: {e}")
                 continue
 
     except Exception as e:
-        logger.error(f"查找系统opus库失败: {e}")
+        logger.error(f"查找系统opus库Failure: {e}")
 
     return lib_path
 
@@ -211,10 +211,10 @@ def copy_opus_to_project(system_lib_path):
         return None
 
     try:
-        # 使用resource_finder获取项目根目录
+        # 使用resource_finderGet项目根目录
         project_root = get_project_root()
 
-        # 获取目标目录路径 - 使用实际目录结构
+        # Get目标目录路径 - 使用实际目录结构
         target_path = get_lib_path(system, arch_name)
         target_dir = project_root / target_path
 
@@ -232,7 +232,7 @@ def copy_opus_to_project(system_lib_path):
         return str(target_file)
 
     except Exception as e:
-        logger.error(f"复制opus库到项目目录失败: {e}")
+        logger.error(f"复制opus库到项目目录Failure: {e}")
         return None
 
 
@@ -240,16 +240,16 @@ def setup_opus() -> bool:
     """
     设置opus动态库.
     """
-    # 检查是否已经由runtime_hook加载
+    # 检查是否已经由runtime_hookLoad
     if hasattr(sys, "_opus_loaded"):
-        logger.info("opus库已由运行时钩子加载")
+        logger.info("opus库已由运行时钩子Load")
         return True
 
-    # 获取当前系统信息
+    # Get当前系统信息
     system, arch_name = get_system_info()
     logger.info(f"当前系统: {system}, 架构: {arch_name}")
 
-    # 构建搜索路径
+    # 构建Search路径
     search_paths = get_search_paths(system, arch_name)
 
     # 查找本地库文件
@@ -266,20 +266,20 @@ def setup_opus() -> bool:
 
     # 如果本地没找到，尝试从系统查找
     if not lib_path:
-        logger.warning("本地未找到opus库文件，尝试从系统路径加载")
+        logger.warning("本地未找到opus库文件，尝试从系统路径Load")
         system_lib_path = find_system_opus()
 
         if system_lib_path:
             # 首次尝试直接使用系统库
             try:
                 _ = ctypes.cdll.LoadLibrary(system_lib_path)
-                logger.info(f"已从系统路径加载opus库: {system_lib_path}")
+                logger.info(f"已从系统路径Loadopus库: {system_lib_path}")
                 sys._opus_loaded = True
                 return True
             except Exception as e:
-                logger.warning(f"加载系统opus库失败: {e}，尝试复制到项目目录")
+                logger.warning(f"Load系统opus库Failure: {e}，尝试复制到项目目录")
 
-            # 如果直接加载失败，尝试复制到项目目录
+            # 如果直接LoadFailure，尝试复制到项目目录
             lib_path = copy_opus_to_project(system_lib_path)
             if lib_path:
                 lib_dir = str(Path(lib_path).parent)
@@ -292,13 +292,13 @@ def setup_opus() -> bool:
 
     # Windows平台特殊处理
     if system == PLATFORM.WINDOWS and lib_dir:
-        # 添加DLL搜索路径
+        # 添加DLLSearch路径
         if hasattr(os, "add_dll_directory"):
             try:
                 os.add_dll_directory(lib_dir)
-                logger.debug(f"已添加DLL搜索路径: {lib_dir}")
+                logger.debug(f"已添加DLLSearch路径: {lib_dir}")
             except Exception as e:
-                logger.warning(f"添加DLL搜索路径失败: {e}")
+                logger.warning(f"添加DLLSearch路径Failure: {e}")
 
         # 设置环境变量
         os.environ["PATH"] = lib_dir + os.pathsep + os.environ.get("PATH", "")
@@ -306,15 +306,15 @@ def setup_opus() -> bool:
     # 修补库路径
     _patch_find_library("opus", lib_path)
 
-    # 尝试加载库
+    # 尝试Load库
     try:
-        # 加载DLL并存储引用以防止垃圾回收
+        # LoadDLL并存储引用以防止垃圾回收
         _ = ctypes.CDLL(lib_path)
-        logger.info(f"成功加载opus库: {lib_path}")
+        logger.info(f"SuccessLoadopus库: {lib_path}")
         sys._opus_loaded = True
         return True
     except Exception as e:
-        logger.error(f"加载opus库失败: {e}")
+        logger.error(f"Loadopus库Failure: {e}")
         return False
 
 

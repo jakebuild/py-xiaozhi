@@ -819,14 +819,14 @@ CHANGSHENG_TWELVE = {
 
 def get_ten_gods_relation(day_master: str, other_stem: str) -> str:
     """
-    获取十神关系.
+    Get十神关系.
     """
     return TEN_GODS_MAP.get((day_master, other_stem), "未知")
 
 
 def get_nayin(gan: str, zhi: str) -> str:
     """
-    获取纳音五行.
+    Get纳音五行.
     """
     return NAYIN_TABLE.get((gan, zhi), "未知")
 
@@ -850,14 +850,14 @@ def get_zhi_relation(zhi1: str, zhi2: str, relation_type: str) -> bool:
 
 def get_changsheng_state(gan: str, zhi: str) -> str:
     """
-    获取长生十二宫状态.
+    Get长生十二宫状态.
     """
     return CHANGSHENG_TWELVE.get(gan, {}).get(zhi, "未知")
 
 
 def get_shensha(item: str, shensha_type: str) -> str:
     """
-    获取神煞.
+    Get神煞.
     """
     shensha_tables = {
         "tianyi": TIANYI_GUIREN,

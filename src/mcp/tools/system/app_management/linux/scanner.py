@@ -41,7 +41,7 @@ def scan_installed_applications() -> List[Dict[str, str]]:
                         apps.append(app_info)
                 except Exception as e:
                     logger.debug(
-                        f"[LinuxScanner] 解析desktop文件失败 {desktop_file}: {e}"
+                        f"[LinuxScanner] Parsedesktop文件Failure {desktop_file}: {e}"
                     )
 
     # 添加常见的Linux系统应用
@@ -85,7 +85,7 @@ def scan_installed_applications() -> List[Dict[str, str]]:
     ]
     apps.extend(system_apps)
 
-    logger.info(f"[LinuxScanner] 扫描完成，找到 {len(apps)} 个应用程序")
+    logger.info(f"[LinuxScanner] 扫描Complete，找到 {len(apps)} 个应用程序")
     return apps
 
 
@@ -101,7 +101,7 @@ def scan_running_applications() -> List[Dict[str, str]]:
     apps = []
 
     try:
-        # 使用ps命令获取进程信息
+        # 使用ps命令Get进程信息
         result = subprocess.run(
             ["ps", "-eo", "pid,ppid,comm,command"],
             capture_output=True,
@@ -137,12 +137,12 @@ def scan_running_applications() -> List[Dict[str, str]]:
         return apps
 
     except Exception as e:
-        logger.error(f"[LinuxScanner] 扫描运行应用失败: {e}")
+        logger.error(f"[LinuxScanner] 扫描运行应用Failure: {e}")
         return []
 
 
 def _parse_desktop_file(desktop_file: Path) -> Dict[str, str]:
-    """解析.desktop文件.
+    """Parse.desktop文件.
 
     Args:
         desktop_file: .desktop文件路径
@@ -154,7 +154,7 @@ def _parse_desktop_file(desktop_file: Path) -> Dict[str, str]:
         with open(desktop_file, "r", encoding="utf-8") as f:
             content = f.read()
 
-        # 解析 .desktop 文件
+        # Parse .desktop 文件
         name = ""
         display_name = ""
         exec_cmd = ""
@@ -335,7 +335,7 @@ def _extract_app_name(comm: str, command: str) -> str:
     # 尝试从命令路径中提取应用名称
     if "/" in command:
         try:
-            # 获取可执行文件名
+            # Get可执行文件名
             exec_path = command.split()[0]
             app_name = Path(exec_path).name
 
@@ -354,13 +354,13 @@ def _extract_app_name(comm: str, command: str) -> str:
 
 
 def _clean_app_name(name: str) -> str:
-    """清理应用程序名称，移除版本号和特殊字符.
+    """Cleanup应用程序名称，移除版本号和特殊字符.
 
     Args:
         name: 原始名称
 
     Returns:
-        str: 清理后的名称
+        str: Cleanup后的名称
     """
     if not name:
         return ""

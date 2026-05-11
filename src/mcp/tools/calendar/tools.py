@@ -69,7 +69,7 @@ async def create_event(args: Dict[str, Any]) -> str:
             return json.dumps(
                 {
                     "success": True,
-                    "message": "日程创建成功",
+                    "message": "日程创建Success",
                     "event_id": event.id,
                     "event": event.to_dict(),
                 },
@@ -77,14 +77,14 @@ async def create_event(args: Dict[str, Any]) -> str:
             )
         else:
             return json.dumps(
-                {"success": False, "message": "日程创建失败，可能存在时间冲突"},
+                {"success": False, "message": "日程创建Failure，可能存在时间冲突"},
                 ensure_ascii=False,
             )
 
     except Exception as e:
-        logger.error(f"创建日程失败: {e}")
+        logger.error(f"创建日程Failure: {e}")
         return json.dumps(
-            {"success": False, "message": f"创建日程失败: {str(e)}"}, ensure_ascii=False
+            {"success": False, "message": f"创建日程Failure: {str(e)}"}, ensure_ascii=False
         )
 
 
@@ -164,20 +164,20 @@ async def get_events_by_date(args: Dict[str, Any]) -> str:
         )
 
     except Exception as e:
-        logger.error(f"查询日程失败: {e}")
+        logger.error(f"查询日程Failure: {e}")
         return json.dumps(
-            {"success": False, "message": f"查询日程失败: {str(e)}"}, ensure_ascii=False
+            {"success": False, "message": f"查询日程Failure: {str(e)}"}, ensure_ascii=False
         )
 
 
 async def update_event(args: Dict[str, Any]) -> str:
     """
-    更新日程事件.
+    Update日程事件.
     """
     try:
         event_id = args["event_id"]
 
-        # 构建更新字段
+        # 构建Update字段
         update_fields = {}
         for field in [
             "title",
@@ -192,7 +192,7 @@ async def update_event(args: Dict[str, Any]) -> str:
 
         if not update_fields:
             return json.dumps(
-                {"success": False, "message": "没有提供要更新的字段"},
+                {"success": False, "message": "没有提供要Update的字段"},
                 ensure_ascii=False,
             )
 
@@ -201,27 +201,27 @@ async def update_event(args: Dict[str, Any]) -> str:
             return json.dumps(
                 {
                     "success": True,
-                    "message": "日程更新成功",
+                    "message": "日程UpdateSuccess",
                     "updated_fields": list(update_fields.keys()),
                 },
                 ensure_ascii=False,
             )
         else:
             return json.dumps(
-                {"success": False, "message": "日程更新失败，事件不存在"},
+                {"success": False, "message": "日程UpdateFailure，事件不存在"},
                 ensure_ascii=False,
             )
 
     except Exception as e:
-        logger.error(f"更新日程失败: {e}")
+        logger.error(f"Update日程Failure: {e}")
         return json.dumps(
-            {"success": False, "message": f"更新日程失败: {str(e)}"}, ensure_ascii=False
+            {"success": False, "message": f"Update日程Failure: {str(e)}"}, ensure_ascii=False
         )
 
 
 async def delete_event(args: Dict[str, Any]) -> str:
     """
-    删除日程事件.
+    Delete日程事件.
     """
     try:
         event_id = args["event_id"]
@@ -229,24 +229,24 @@ async def delete_event(args: Dict[str, Any]) -> str:
         manager = get_calendar_manager()
         if manager.delete_event(event_id):
             return json.dumps(
-                {"success": True, "message": "日程删除成功"}, ensure_ascii=False
+                {"success": True, "message": "日程DeleteSuccess"}, ensure_ascii=False
             )
         else:
             return json.dumps(
-                {"success": False, "message": "日程删除失败，事件不存在"},
+                {"success": False, "message": "日程DeleteFailure，事件不存在"},
                 ensure_ascii=False,
             )
 
     except Exception as e:
-        logger.error(f"删除日程失败: {e}")
+        logger.error(f"Delete日程Failure: {e}")
         return json.dumps(
-            {"success": False, "message": f"删除日程失败: {str(e)}"}, ensure_ascii=False
+            {"success": False, "message": f"Delete日程Failure: {str(e)}"}, ensure_ascii=False
         )
 
 
 async def delete_events_batch(args: Dict[str, Any]) -> str:
     """
-    批量删除日程事件.
+    批量Delete日程事件.
     """
     try:
         start_date = args.get("start_date")
@@ -301,16 +301,16 @@ async def delete_events_batch(args: Dict[str, Any]) -> str:
         return json.dumps(result, ensure_ascii=False, indent=2)
 
     except Exception as e:
-        logger.error(f"批量删除日程失败: {e}")
+        logger.error(f"批量Delete日程Failure: {e}")
         return json.dumps(
-            {"success": False, "message": f"批量删除日程失败: {str(e)}"},
+            {"success": False, "message": f"批量Delete日程Failure: {str(e)}"},
             ensure_ascii=False,
         )
 
 
 async def get_categories(args: Dict[str, Any]) -> str:
     """
-    获取所有日程分类.
+    Get所有日程分类.
     """
     try:
         manager = get_calendar_manager()
@@ -321,15 +321,15 @@ async def get_categories(args: Dict[str, Any]) -> str:
         )
 
     except Exception as e:
-        logger.error(f"获取分类失败: {e}")
+        logger.error(f"Get分类Failure: {e}")
         return json.dumps(
-            {"success": False, "message": f"获取分类失败: {str(e)}"}, ensure_ascii=False
+            {"success": False, "message": f"Get分类Failure: {str(e)}"}, ensure_ascii=False
         )
 
 
 async def get_upcoming_events(args: Dict[str, Any]) -> str:
     """
-    获取即将到来的日程（未来24小时内）
+    Get即将到来的日程（未来24小时内）
     """
     try:
         hours = args.get("hours", 24)  # 默认查询未来24小时
@@ -375,8 +375,8 @@ async def get_upcoming_events(args: Dict[str, Any]) -> str:
         )
 
     except Exception as e:
-        logger.error(f"获取即将到来的日程失败: {e}")
+        logger.error(f"Get即将到来的日程Failure: {e}")
         return json.dumps(
-            {"success": False, "message": f"获取即将到来的日程失败: {str(e)}"},
+            {"success": False, "message": f"Get即将到来的日程Failure: {str(e)}"},
             ensure_ascii=False,
         )

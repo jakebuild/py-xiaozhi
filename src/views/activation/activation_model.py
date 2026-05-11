@@ -91,7 +91,7 @@ class ActivationModel(QObject):
     # 便捷方法
     def update_device_info(self, serial_number=None, mac_address=None):
         """
-        更新设备信息.
+        Update设备信息.
         """
         if serial_number is not None:
             self.serialNumber = serial_number
@@ -100,14 +100,14 @@ class ActivationModel(QObject):
 
     def update_activation_status(self, status, color="#6c757d"):
         """
-        更新激活状态.
+        Update激活状态.
         """
         self.activationStatus = status
         self.statusColor = color
 
     def update_activation_code(self, code):
         """
-        更新激活码.
+        Update激活码.
         """
         self.activationCode = code
 

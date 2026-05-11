@@ -16,7 +16,7 @@ logger = get_logger(__name__)
 
 def _get_database_file_path() -> str:
     """
-    获取数据库文件路径，确保在可写目录中.
+    Get数据库文件路径，确保在可写目录中.
     """
     data_dir = get_user_data_dir()
     database_file = str(data_dir / "calendar.db")
@@ -24,7 +24,7 @@ def _get_database_file_path() -> str:
     return database_file
 
 
-# 数据库文件路径 - 使用函数获取确保可写
+# 数据库文件路径 - 使用函数Get确保可写
 DATABASE_FILE = _get_database_file_path()
 
 
@@ -85,12 +85,12 @@ class CalendarDatabase:
             # 检查并添加新字段（数据库升级）
             self._upgrade_database(conn)
 
-            logger.info("数据库初始化完成")
+            logger.info("数据库InitializationComplete")
 
     @contextmanager
     def _get_connection(self):
         """
-        获取数据库连接的上下文管理器.
+        Get数据库Connect的上下文管理器.
         """
         conn = None
         try:
@@ -100,7 +100,7 @@ class CalendarDatabase:
         except Exception as e:
             if conn:
                 conn.rollback()
-            logger.error(f"数据库操作失败: {e}")
+            logger.error(f"数据库操作Failure: {e}")
             raise
         finally:
             if conn:
@@ -139,17 +139,17 @@ class CalendarDatabase:
                     ),
                 )
                 conn.commit()
-                logger.info(f"添加事件成功: {event_data['title']}")
+                logger.info(f"添加事件Success: {event_data['title']}")
                 return True
         except Exception as e:
-            logger.error(f"添加事件失败: {e}")
+            logger.error(f"添加事件Failure: {e}")
             return False
 
     def get_events(
         self, start_date: str = None, end_date: str = None, category: str = None
     ) -> List[Dict[str, Any]]:
         """
-        获取事件列表.
+        Get事件列表.
         """
         try:
             with self._get_connection() as conn:
@@ -179,16 +179,16 @@ class CalendarDatabase:
 
                 return events
         except Exception as e:
-            logger.error(f"获取事件失败: {e}")
+            logger.error(f"Get事件Failure: {e}")
             return []
 
     def update_event(self, event_id: str, **kwargs) -> bool:
         """
-        更新事件.
+        Update事件.
         """
         try:
             with self._get_connection() as conn:
-                # 构建更新查询
+                # 构建Update查询
                 set_clauses = []
                 params = []
 
@@ -207,7 +207,7 @@ class CalendarDatabase:
                 if not set_clauses:
                     return False
 
-                # 添加更新时间
+                # 添加Update时间
                 set_clauses.append("updated_at = ?")
                 params.append(datetime.now().isoformat())
                 params.append(event_id)
@@ -218,18 +218,18 @@ class CalendarDatabase:
                 conn.commit()
 
                 if cursor.rowcount > 0:
-                    logger.info(f"更新事件成功: {event_id}")
+                    logger.info(f"Update事件Success: {event_id}")
                     return True
                 else:
                     logger.warning(f"事件不存在: {event_id}")
                     return False
         except Exception as e:
-            logger.error(f"更新事件失败: {e}")
+            logger.error(f"Update事件Failure: {e}")
             return False
 
     def delete_event(self, event_id: str) -> bool:
         """
-        删除事件.
+        Delete事件.
         """
         try:
             with self._get_connection() as conn:
@@ -237,13 +237,13 @@ class CalendarDatabase:
                 conn.commit()
 
                 if cursor.rowcount > 0:
-                    logger.info(f"删除事件成功: {event_id}")
+                    logger.info(f"Delete事件Success: {event_id}")
                     return True
                 else:
                     logger.warning(f"事件不存在: {event_id}")
                     return False
         except Exception as e:
-            logger.error(f"删除事件失败: {e}")
+            logger.error(f"Delete事件Failure: {e}")
             return False
 
     def delete_events_batch(
@@ -253,21 +253,21 @@ class CalendarDatabase:
         category: str = None,
         delete_all: bool = False,
     ) -> Dict[str, Any]:
-        """批量删除事件.
+        """批量Delete事件.
 
         Args:
             start_date: 开始日期，ISO格式
             end_date: 结束日期，ISO格式
             category: 分类筛选
-            delete_all: 是否删除所有事件
+            delete_all: 是否Delete所有事件
 
         Returns:
-            包含删除结果的字典
+            包含Delete结果的字典
         """
         try:
             with self._get_connection() as conn:
                 if delete_all:
-                    # 删除所有事件
+                    # Delete所有事件
                     cursor = conn.execute("SELECT COUNT(*) FROM events")
                     total_count = cursor.fetchone()[0]
 
@@ -275,21 +275,21 @@ class CalendarDatabase:
                         return {
                             "success": True,
                             "deleted_count": 0,
-                            "message": "没有事件需要删除",
+                            "message": "没有事件需要Delete",
                         }
 
                     cursor = conn.execute("DELETE FROM events")
                     conn.commit()
 
-                    logger.info(f"删除所有事件成功，共删除 {total_count} 个事件")
+                    logger.info(f"Delete所有事件Success，共Delete {total_count} 个事件")
                     return {
                         "success": True,
                         "deleted_count": total_count,
-                        "message": f"成功删除所有 {total_count} 个事件",
+                        "message": f"SuccessDelete所有 {total_count} 个事件",
                     }
 
                 else:
-                    # 按条件删除事件
+                    # 按条件Delete事件
                     # 首先查询符合条件的事件
                     query = "SELECT id, title FROM events WHERE 1=1"
                     params = []
@@ -313,10 +313,10 @@ class CalendarDatabase:
                         return {
                             "success": True,
                             "deleted_count": 0,
-                            "message": "没有符合条件的事件需要删除",
+                            "message": "没有符合条件的事件需要Delete",
                         }
 
-                    # 执行删除
+                    # 执行Delete
                     delete_query = "DELETE FROM events WHERE 1=1"
                     delete_params = []
 
@@ -336,10 +336,10 @@ class CalendarDatabase:
                     deleted_count = cursor.rowcount
                     conn.commit()
 
-                    # 记录删除的事件标题
+                    # 记录Delete的事件标题
                     deleted_titles = [event[1] for event in events_to_delete]
                     logger.info(
-                        f"批量删除事件成功，共删除 {deleted_count} 个事件: "
+                        f"批量Delete事件Success，共Delete {deleted_count} 个事件: "
                         f"{', '.join(deleted_titles[:3])}"
                         f"{'...' if len(deleted_titles) > 3 else ''}"
                     )
@@ -348,20 +348,20 @@ class CalendarDatabase:
                         "success": True,
                         "deleted_count": deleted_count,
                         "deleted_titles": deleted_titles,
-                        "message": f"成功删除 {deleted_count} 个事件",
+                        "message": f"SuccessDelete {deleted_count} 个事件",
                     }
 
         except Exception as e:
-            logger.error(f"批量删除事件失败: {e}")
+            logger.error(f"批量Delete事件Failure: {e}")
             return {
                 "success": False,
                 "deleted_count": 0,
-                "message": f"批量删除失败: {str(e)}",
+                "message": f"批量DeleteFailure: {str(e)}",
             }
 
     def get_event_by_id(self, event_id: str) -> Optional[Dict[str, Any]]:
         """
-        根据ID获取事件.
+        根据IDGet事件.
         """
         try:
             with self._get_connection() as conn:
@@ -372,12 +372,12 @@ class CalendarDatabase:
                     return dict(row)
                 return None
         except Exception as e:
-            logger.error(f"获取事件失败: {e}")
+            logger.error(f"Get事件Failure: {e}")
             return None
 
     def get_categories(self) -> List[str]:
         """
-        获取所有分类.
+        Get所有分类.
         """
         try:
             with self._get_connection() as conn:
@@ -385,7 +385,7 @@ class CalendarDatabase:
                 rows = cursor.fetchall()
                 return [row[0] for row in rows]
         except Exception as e:
-            logger.error(f"获取分类失败: {e}")
+            logger.error(f"Get分类Failure: {e}")
             return ["默认"]
 
     def add_category(self, category_name: str) -> bool:
@@ -399,15 +399,15 @@ class CalendarDatabase:
                     (category_name,),
                 )
                 conn.commit()
-                logger.info(f"添加分类成功: {category_name}")
+                logger.info(f"添加分类Success: {category_name}")
                 return True
         except Exception as e:
-            logger.error(f"添加分类失败: {e}")
+            logger.error(f"添加分类Failure: {e}")
             return False
 
     def delete_category(self, category_name: str) -> bool:
         """
-        删除分类（如果没有事件使用）
+        Delete分类（如果没有事件使用）
         """
         try:
             with self._get_connection() as conn:
@@ -418,7 +418,7 @@ class CalendarDatabase:
                 count = cursor.fetchone()[0]
 
                 if count > 0:
-                    logger.warning(f"分类 '{category_name}' 正在使用中，无法删除")
+                    logger.warning(f"分类 '{category_name}' 正在使用中，无法Delete")
                     return False
 
                 cursor = conn.execute(
@@ -427,13 +427,13 @@ class CalendarDatabase:
                 conn.commit()
 
                 if cursor.rowcount > 0:
-                    logger.info(f"删除分类成功: {category_name}")
+                    logger.info(f"Delete分类Success: {category_name}")
                     return True
                 else:
                     logger.warning(f"分类不存在: {category_name}")
                     return False
         except Exception as e:
-            logger.error(f"删除分类失败: {e}")
+            logger.error(f"Delete分类Failure: {e}")
             return False
 
     def _has_conflict(
@@ -470,7 +470,7 @@ class CalendarDatabase:
 
     def get_statistics(self) -> Dict[str, Any]:
         """
-        获取统计信息.
+        Get统计信息.
         """
         try:
             with self._get_connection() as conn:
@@ -506,7 +506,7 @@ class CalendarDatabase:
                     "today_events": today_events,
                 }
         except Exception as e:
-            logger.error(f"获取统计信息失败: {e}")
+            logger.error(f"Get统计信息Failure: {e}")
             return {}
 
     def migrate_from_json(self, json_file_path: str) -> bool:
@@ -558,12 +558,12 @@ class CalendarDatabase:
 
                 conn.commit()
                 logger.info(
-                    f"成功迁移 {len(events_data)} 个事件和 {len(categories_data)} 个分类"
+                    f"Success迁移 {len(events_data)} 个事件和 {len(categories_data)} 个分类"
                 )
                 return True
 
         except Exception as e:
-            logger.error(f"数据迁移失败: {e}")
+            logger.error(f"数据迁移Failure: {e}")
             return False
 
     def _upgrade_database(self, conn: sqlite3.Connection):
@@ -607,7 +607,7 @@ class CalendarDatabase:
                         (reminder_dt.isoformat(), event_id),
                     )
                 except Exception as e:
-                    logger.warning(f"计算事件{event_id}的提醒时间失败: {e}")
+                    logger.warning(f"计算事件{event_id}的提醒时间Failure: {e}")
 
             if events_to_update:
                 logger.info(f"已为{len(events_to_update)}个现有事件设置提醒时间")
@@ -615,7 +615,7 @@ class CalendarDatabase:
             conn.commit()
 
         except Exception as e:
-            logger.error(f"数据库升级失败: {e}", exc_info=True)
+            logger.error(f"数据库升级Failure: {e}", exc_info=True)
 
 
 # 全局数据库实例
@@ -624,7 +624,7 @@ _calendar_db = None
 
 def get_calendar_database() -> CalendarDatabase:
     """
-    获取数据库实例单例.
+    Get数据库实例单例.
     """
     global _calendar_db
     if _calendar_db is None:

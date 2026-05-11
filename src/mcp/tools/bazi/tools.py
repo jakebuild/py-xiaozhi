@@ -15,7 +15,7 @@ logger = get_logger(__name__)
 
 async def get_bazi_detail(args: Dict[str, Any]) -> str:
     """
-    根据时间（公历或农历）、性别来获取八字信息。
+    根据时间（公历或农历）、性别来Get八字信息。
     """
     try:
         solar_datetime = args.get("solar_datetime")
@@ -45,16 +45,16 @@ async def get_bazi_detail(args: Dict[str, Any]) -> str:
         )
 
     except Exception as e:
-        logger.error(f"获取八字详情失败: {e}")
+        logger.error(f"Get八字详情Failure: {e}")
         return json.dumps(
-            {"success": False, "message": f"获取八字详情失败: {str(e)}"},
+            {"success": False, "message": f"Get八字详情Failure: {str(e)}"},
             ensure_ascii=False,
         )
 
 
 async def get_solar_times(args: Dict[str, Any]) -> str:
     """
-    根据八字获取公历时间列表。
+    根据八字Get公历时间列表。
     """
     try:
         bazi = args.get("bazi")
@@ -73,23 +73,23 @@ async def get_solar_times(args: Dict[str, Any]) -> str:
         )
 
     except Exception as e:
-        logger.error(f"获取公历时间失败: {e}")
+        logger.error(f"Get公历时间Failure: {e}")
         return json.dumps(
-            {"success": False, "message": f"获取公历时间失败: {str(e)}"},
+            {"success": False, "message": f"Get公历时间Failure: {str(e)}"},
             ensure_ascii=False,
         )
 
 
 async def get_chinese_calendar(args: Dict[str, Any]) -> str:
     """
-    获取指定公历时间（默认今天）的黄历信息。
+    Get指定公历时间（默认今天）的黄历信息。
     """
     try:
         solar_datetime = args.get("solar_datetime")
 
         engine = get_bazi_engine()
 
-        # 如果提供了时间，解析它；否则使用当前时间
+        # 如果提供了时间，Parse它；否则使用当前时间
         if solar_datetime:
             solar_time = engine.parse_solar_time(solar_datetime)
             result = engine.get_chinese_calendar(solar_time)
@@ -101,16 +101,16 @@ async def get_chinese_calendar(args: Dict[str, Any]) -> str:
         )
 
     except Exception as e:
-        logger.error(f"获取黄历信息失败: {e}")
+        logger.error(f"Get黄历信息Failure: {e}")
         return json.dumps(
-            {"success": False, "message": f"获取黄历信息失败: {str(e)}"},
+            {"success": False, "message": f"Get黄历信息Failure: {str(e)}"},
             ensure_ascii=False,
         )
 
 
 async def build_bazi_from_lunar_datetime(args: Dict[str, Any]) -> str:
     """
-    根据农历时间、性别来获取八字信息（已弃用，使用get_bazi_detail替代）。
+    根据农历时间、性别来Get八字信息（已弃用，使用get_bazi_detail替代）。
     """
     try:
         lunar_datetime = args.get("lunar_datetime")
@@ -141,16 +141,16 @@ async def build_bazi_from_lunar_datetime(args: Dict[str, Any]) -> str:
         )
 
     except Exception as e:
-        logger.error(f"根据农历时间获取八字失败: {e}")
+        logger.error(f"根据农历时间Get八字Failure: {e}")
         return json.dumps(
-            {"success": False, "message": f"根据农历时间获取八字失败: {str(e)}"},
+            {"success": False, "message": f"根据农历时间Get八字Failure: {str(e)}"},
             ensure_ascii=False,
         )
 
 
 async def build_bazi_from_solar_datetime(args: Dict[str, Any]) -> str:
     """
-    根据阳历时间、性别来获取八字信息（已弃用，使用get_bazi_detail替代）。
+    根据阳历时间、性别来Get八字信息（已弃用，使用get_bazi_detail替代）。
     """
     try:
         solar_datetime = args.get("solar_datetime")
@@ -181,8 +181,8 @@ async def build_bazi_from_solar_datetime(args: Dict[str, Any]) -> str:
         )
 
     except Exception as e:
-        logger.error(f"根据阳历时间获取八字失败: {e}")
+        logger.error(f"根据阳历时间Get八字Failure: {e}")
         return json.dumps(
-            {"success": False, "message": f"根据阳历时间获取八字失败: {str(e)}"},
+            {"success": False, "message": f"根据阳历时间Get八字Failure: {str(e)}"},
             ensure_ascii=False,
         )

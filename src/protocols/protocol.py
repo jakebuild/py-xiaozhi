@@ -9,13 +9,13 @@ logger = get_logger(__name__)
 class Protocol:
     def __init__(self):
         self.session_id = ""
-        # 初始化回调函数为None
+        # Initialization回调函数为None
         self._on_incoming_json = None
         self._on_incoming_audio = None
         self._on_audio_channel_opened = None
         self._on_audio_channel_closed = None
         self._on_network_error = None
-        # 新增连接状态变化回调
+        # 新增Connect状态变化回调
         self._on_connection_state_changed = None
         self._on_reconnecting = None
 
@@ -39,18 +39,18 @@ class Protocol:
 
     def on_audio_channel_closed(self, callback):
         """
-        设置音频通道关闭回调函数.
+        设置音频通道Close回调函数.
         """
         self._on_audio_channel_closed = callback
 
     def on_network_error(self, callback):
         """
-        设置网络错误回调函数.
+        设置网络Error回调函数.
         """
         self._on_network_error = callback
 
     def on_connection_state_changed(self, callback):
-        """设置连接状态变化回调函数.
+        """设置Connect状态变化回调函数.
 
         Args:
             callback: 回调函数，接收参数 (connected: bool, reason: str)
@@ -58,7 +58,7 @@ class Protocol:
         self._on_connection_state_changed = callback
 
     def on_reconnecting(self, callback):
-        """设置重连尝试回调函数.
+        """设置Reconnect尝试回调函数.
 
         Args:
             callback: 回调函数，接收参数 (attempt: int, max_attempts: int)
@@ -67,7 +67,7 @@ class Protocol:
 
     async def send_text(self, message):
         """
-        发送文本消息的抽象方法，需要在子类中实现.
+        Send Text消息的抽象方法，需要在子类中实现.
         """
         raise NotImplementedError("send_text方法必须由子类实现")
 
@@ -91,7 +91,7 @@ class Protocol:
 
     async def close_audio_channel(self):
         """
-        关闭音频通道的抽象方法，需要在子类中实现.
+        Close音频通道的抽象方法，需要在子类中实现.
         """
         raise NotImplementedError("close_audio_channel方法必须由子类实现")
 
@@ -135,7 +135,7 @@ class Protocol:
 
     async def send_stop_listening(self):
         """
-        发送停止监听的消息.
+        发送Stop监听的消息.
         """
         message = {"session_id": self.session_id, "type": "listen", "state": "stop"}
         await self.send_text(json.dumps(message))
@@ -145,7 +145,7 @@ class Protocol:
         发送物联网设备描述信息.
         """
         try:
-            # 解析描述符数据
+            # Parse描述符数据
             if isinstance(descriptors, str):
                 descriptors_data = json.loads(descriptors)
             else:

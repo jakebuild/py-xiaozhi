@@ -1,6 +1,6 @@
-"""统一的应用程序启动器.
+"""统一的应用程序Start器.
 
-根据系统自动选择对应的启动器实现
+根据系统自动选择对应的Start器实现
 """
 
 import asyncio
@@ -15,18 +15,18 @@ logger = get_logger(__name__)
 
 
 async def launch_application(args: Dict[str, Any]) -> bool:
-    """启动应用程序.
+    """Start应用程序.
 
     Args:
         args: 包含应用程序名称的参数字典
             - app_name: 应用程序名称
 
     Returns:
-        bool: 启动是否成功
+        bool: Start是否Success
     """
     try:
         app_name = args["app_name"]
-        logger.info(f"[AppLauncher] 尝试启动应用程序: {app_name}")
+        logger.info(f"[AppLauncher] 尝试Start应用程序: {app_name}")
 
         # 首先尝试通过扫描找到精确匹配的应用程序
         matched_app = await _find_matching_application(app_name)
@@ -34,7 +34,7 @@ async def launch_application(args: Dict[str, Any]) -> bool:
             logger.info(
                 f"[AppLauncher] 找到匹配的应用程序: {matched_app.get('display_name', matched_app.get('name', ''))}"
             )
-            # 根据应用程序类型使用不同的启动方法
+            # 根据应用程序类型使用不同的Start方法
             success = await _launch_matched_app(matched_app, app_name)
         else:
             # 如果没有找到匹配，使用原来的方法
@@ -42,9 +42,9 @@ async def launch_application(args: Dict[str, Any]) -> bool:
             success = await _launch_by_name(app_name)
 
         if success:
-            logger.info(f"[AppLauncher] 成功启动应用程序: {app_name}")
+            logger.info(f"[AppLauncher] SuccessStart应用程序: {app_name}")
         else:
-            logger.warning(f"[AppLauncher] 启动应用程序失败: {app_name}")
+            logger.warning(f"[AppLauncher] Start应用程序Failure: {app_name}")
 
         return success
 
@@ -52,7 +52,7 @@ async def launch_application(args: Dict[str, Any]) -> bool:
         logger.error("[AppLauncher] 缺少app_name参数")
         return False
     except Exception as e:
-        logger.error(f"[AppLauncher] 启动应用程序失败: {e}", exc_info=True)
+        logger.error(f"[AppLauncher] Start应用程序Failure: {e}", exc_info=True)
         return False
 
 
@@ -82,14 +82,14 @@ async def _find_matching_application(app_name: str) -> Optional[Dict[str, Any]]:
 
 
 async def _launch_matched_app(matched_app: Dict[str, Any], original_name: str) -> bool:
-    """启动匹配到的应用程序.
+    """Start匹配到的应用程序.
 
     Args:
         matched_app: 匹配的应用程序信息
         original_name: 原始应用程序名称
 
     Returns:
-        bool: 启动是否成功
+        bool: Start是否Success
     """
     try:
         app_type = matched_app.get("type", "unknown")
@@ -100,7 +100,7 @@ async def _launch_matched_app(matched_app: Dict[str, Any], original_name: str) -
         if system == "Windows":
             # Windows系统特殊处理
             if app_type == "uwp":
-                # UWP应用使用特殊的启动方法
+                # UWP应用使用特殊的Start方法
                 from .windows.launcher import launch_uwp_app_by_path
 
                 return await asyncio.to_thread(launch_uwp_app_by_path, app_path)
@@ -110,22 +110,22 @@ async def _launch_matched_app(matched_app: Dict[str, Any], original_name: str) -
 
                 return await asyncio.to_thread(launch_shortcut, app_path)
 
-        # 常规应用程序启动
+        # 常规应用程序Start
         return await _launch_by_name(app_path)
 
     except Exception as e:
-        logger.error(f"[AppLauncher] 启动匹配应用失败: {e}")
+        logger.error(f"[AppLauncher] Start匹配应用Failure: {e}")
         return False
 
 
 async def _launch_by_name(app_name: str) -> bool:
-    """根据名称启动应用程序.
+    """根据名称Start应用程序.
 
     Args:
         app_name: 应用程序名称或路径
 
     Returns:
-        bool: 启动是否成功
+        bool: Start是否Success
     """
     try:
         system = platform.system()
@@ -147,15 +147,15 @@ async def _launch_by_name(app_name: str) -> bool:
             return False
 
     except Exception as e:
-        logger.error(f"[AppLauncher] 启动应用程序失败: {e}")
+        logger.error(f"[AppLauncher] Start应用程序Failure: {e}")
         return False
 
 
 def get_system_launcher():
-    """根据当前系统获取对应的启动器模块.
+    """根据当前系统Get对应的Start器模块.
 
     Returns:
-        对应系统的启动器模块
+        对应系统的Start器模块
     """
     system = platform.system()
 

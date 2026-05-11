@@ -18,7 +18,7 @@ class Camera:
         self.explain_token = ""
         self.jpeg_data = {"buf": b"", "len": 0}  # 图像的JPEG字节数据  # 字节数据长度
 
-        # 从配置中读取相机参数
+        # 从Configuration中读取相机参数
         config = ConfigManager.get_instance()
         self.camera_index = config.get_config("CAMERA.camera_index", 0)
         self.frame_width = config.get_config("CAMERA.frame_width", 640)
@@ -79,7 +79,7 @@ class Camera:
                 logger.error("Failed to capture image")
                 return False
 
-            # 获取原始图像尺寸
+            # Get原始图像尺寸
             height, width = frame.shape[:2]
 
             # 计算缩放比例，使最长边为320
@@ -101,7 +101,7 @@ class Camera:
                 logger.error("Failed to encode image to JPEG")
                 return False
 
-            # 获取字节数据
+            # Get字节数据
             self.jpeg_data["buf"] = jpeg_data.tobytes()
             self.jpeg_data["len"] = len(self.jpeg_data["buf"])
             logger.info(
@@ -115,13 +115,13 @@ class Camera:
 
     def get_device_id(self):
         """
-        获取设备ID.
+        Get设备ID.
         """
         return ConfigManager.get_instance().get_config("SYSTEM_OPTIONS.DEVICE_ID")
 
     def get_client_id(self):
         """
-        获取客户端ID.
+        Get客户端ID.
         """
         return ConfigManager.get_instance().get_config("SYSTEM_OPTIONS.CLIENT_ID")
 

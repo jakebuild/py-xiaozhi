@@ -113,12 +113,12 @@ class PluginShortcutManager:
 
     async def start(self) -> bool:
         if not self.enabled:
-            logger.info("全局快捷键已禁用")
+            logger.info("Global shortcut disabled")
             return False
         try:
             from pynput import keyboard
         except Exception as e:
-            logger.error(f"未安装pynput库: {e}")
+            logger.error(f"pynput library not installed: {e}")
             return False
 
         self._listener = keyboard.Listener(
@@ -128,10 +128,10 @@ class PluginShortcutManager:
             self._listener.start()
             self.running = True
             self._start_health_check_task()
-            logger.info("全局快捷键监听已启动")
+            logger.info("Global shortcut listener started")
             return True
         except Exception as e:
-            logger.error(f"启动全局快捷键监听失败: {e}")
+            logger.error(f"Failed to start global shortcut listener: {e}")
             return False
 
     async def stop(self):
@@ -150,7 +150,7 @@ class PluginShortcutManager:
                 self._listener = None
         except Exception:
             pass
-        logger.info("全局快捷键监听已停止")
+        logger.info("Global shortcut listener stopped")
 
     async def reload_from_config(self):
         try:
@@ -158,9 +158,9 @@ class PluginShortcutManager:
             self.shortcuts_config = self.config.get_config("SHORTCUTS", {}) or {}
             self.enabled = bool(self.shortcuts_config.get("ENABLED", True))
             self._load_shortcuts()
-            logger.info("快捷键配置已重新加载")
+            logger.info("Shortcut configuration reloaded")
         except Exception as e:
-            logger.error(f"重新加载快捷键配置失败: {e}")
+            logger.error(f"Failed to reload shortcut configuration: {e}")
 
     # --- 内部回调 ---
     def _on_key_press(self, key):
@@ -182,7 +182,7 @@ class PluginShortcutManager:
             return
         if name in self.pressed_keys:
             self.pressed_keys.remove(name)
-        # 释放时停止按住说话
+        # 释放时StopPush-to-talk
         if (
             self.manual_press_active
             and len(self.pressed_keys) == 0
@@ -271,7 +271,7 @@ class PluginShortcutManager:
             return
 
         if kind == "WINDOW_TOGGLE" and is_press and self.display:
-            print("显示隐藏界面")
+            print("Show/hide interface")
             self._run_coroutine_threadsafe(self.display.toggle_window_visibility())
             return
 
@@ -291,7 +291,7 @@ class PluginShortcutManager:
     async def _health_check_loop(self):
         while self.running and not self._restart_in_progress:
             await asyncio.sleep(30)
-            # 这里只做轻量心跳；如需重启逻辑可扩展
+            # 这里只做轻量心跳；如需Restart逻辑可扩展
 
 
 class ShortcutsPlugin(Plugin):

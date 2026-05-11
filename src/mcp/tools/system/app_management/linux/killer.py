@@ -1,6 +1,6 @@
-"""Linux系统应用程序关闭器.
+"""Linux系统应用程序Close器.
 
-提供Linux平台下的应用程序关闭功能
+提供Linux平台下的应用程序Close功能
 """
 
 import subprocess
@@ -18,7 +18,7 @@ def list_running_applications(filter_name: str = "") -> List[Dict[str, Any]]:
     apps = []
 
     try:
-        # 使用ps命令获取进程信息
+        # 使用ps命令Get进程信息
         result = subprocess.run(
             ["ps", "-eo", "pid,ppid,comm,command", "--no-headers"],
             capture_output=True,
@@ -59,27 +59,27 @@ def list_running_applications(filter_name: str = "") -> List[Dict[str, Any]]:
                             )
 
     except (subprocess.TimeoutExpired, subprocess.SubprocessError) as e:
-        logger.warning(f"[LinuxKiller] Linux进程扫描失败: {e}")
+        logger.warning(f"[LinuxKiller] Linux进程扫描Failure: {e}")
 
     return apps
 
 
 def kill_application(pid: int, force: bool) -> bool:
     """
-    在Linux上关闭应用程序.
+    在Linux上Close应用程序.
     """
     try:
         logger.info(
-            f"[LinuxKiller] 尝试关闭Linux应用程序，PID: {pid}, 强制关闭: {force}"
+            f"[LinuxKiller] 尝试CloseLinux应用程序，PID: {pid}, 强制Close: {force}"
         )
 
         if force:
-            # 强制关闭 (SIGKILL)
+            # 强制Close (SIGKILL)
             result = subprocess.run(
                 ["kill", "-9", str(pid)], capture_output=True, timeout=5
             )
         else:
-            # 正常关闭 (SIGTERM)
+            # 正常Close (SIGTERM)
             result = subprocess.run(
                 ["kill", "-15", str(pid)], capture_output=True, timeout=5
             )
@@ -87,12 +87,12 @@ def kill_application(pid: int, force: bool) -> bool:
         success = result.returncode == 0
 
         if success:
-            logger.info(f"[LinuxKiller] 成功关闭应用程序，PID: {pid}")
+            logger.info(f"[LinuxKiller] SuccessClose应用程序，PID: {pid}")
         else:
-            logger.warning(f"[LinuxKiller] 关闭应用程序失败，PID: {pid}")
+            logger.warning(f"[LinuxKiller] Failed to close application，PID: {pid}")
 
         return success
 
     except (subprocess.TimeoutExpired, subprocess.SubprocessError) as e:
-        logger.error(f"[LinuxKiller] Linux关闭应用程序失败: {e}")
+        logger.error(f"[LinuxKiller] LinuxFailed to close application: {e}")
         return False

@@ -32,7 +32,7 @@ async def analyze_marriage_timing(args: Dict[str, Any]) -> str:
                 ensure_ascii=False,
             )
 
-        # 先获取基础八字信息
+        # 先Get基础八字信息
         calculator = get_bazi_calculator()
         bazi_result = calculator.build_bazi(
             solar_datetime=solar_datetime,
@@ -72,9 +72,9 @@ async def analyze_marriage_timing(args: Dict[str, Any]) -> str:
         )
 
     except Exception as e:
-        logger.error(f"婚姻分析失败: {e}")
+        logger.error(f"婚姻分析Failure: {e}")
         return json.dumps(
-            {"success": False, "message": f"婚姻分析失败: {str(e)}"},
+            {"success": False, "message": f"婚姻分析Failure: {str(e)}"},
             ensure_ascii=False,
         )
 
@@ -103,12 +103,12 @@ async def analyze_marriage_compatibility(args: Dict[str, Any]) -> str:
 
         calculator = get_bazi_calculator()
 
-        # 获取男方八字
+        # Get男方八字
         male_bazi = calculator.build_bazi(
             solar_datetime=male_solar, lunar_datetime=male_lunar, gender=1
         )
 
-        # 获取女方八字
+        # Get女方八字
         female_bazi = calculator.build_bazi(
             solar_datetime=female_solar, lunar_datetime=female_lunar, gender=0
         )
@@ -135,16 +135,16 @@ async def analyze_marriage_compatibility(args: Dict[str, Any]) -> str:
         )
 
     except Exception as e:
-        logger.error(f"合婚分析失败: {e}")
+        logger.error(f"合婚分析Failure: {e}")
         return json.dumps(
-            {"success": False, "message": f"合婚分析失败: {str(e)}"},
+            {"success": False, "message": f"合婚分析Failure: {str(e)}"},
             ensure_ascii=False,
         )
 
 
 def _analyze_compatibility(male_bazi, female_bazi) -> Dict[str, Any]:
     """分析两人八字合婚 - 使用专业算法"""
-    # 获取双方日柱
+    # Get双方日柱
     male_day_gan = male_bazi.day_master
     female_day_gan = female_bazi.day_pillar["天干"]["天干"]
 
@@ -353,7 +353,7 @@ def _analyze_branch_relationships(male_bazi, female_bazi) -> Dict[str, Any]:
     """
     分析地支关系.
     """
-    # 获取双方四柱地支
+    # Get双方四柱地支
     male_branches = [
         male_bazi.year_pillar["地支"]["地支"],
         male_bazi.month_pillar["地支"]["地支"],
@@ -401,7 +401,7 @@ def _analyze_complement(male_bazi, female_bazi) -> Dict[str, Any]:
     male_elements = []
     female_elements = []
 
-    # 获取男方五行
+    # Get男方五行
     for pillar in [
         male_bazi.year_pillar,
         male_bazi.month_pillar,
@@ -412,7 +412,7 @@ def _analyze_complement(male_bazi, female_bazi) -> Dict[str, Any]:
         zhi = pillar["地支"]["地支"]
         male_elements.extend([GAN_WUXING.get(gan, ""), ZHI_WUXING.get(zhi, "")])
 
-    # 获取女方五行
+    # Get女方五行
     for pillar in [
         female_bazi.year_pillar,
         female_bazi.month_pillar,
@@ -457,7 +457,7 @@ def _get_professional_suggestions(
     zodiac_analysis: Dict[str, Any],
 ) -> List[str]:
     """
-    获取专业合婚建议.
+    Get专业合婚建议.
     """
     suggestions = []
 
@@ -485,7 +485,7 @@ def _get_professional_suggestions(
 
 def _get_compatibility_level(score: float) -> str:
     """
-    获取合婚等级.
+    Get合婚等级.
     """
     if score >= 80:
         return "上等婚"
@@ -499,7 +499,7 @@ def _get_compatibility_level(score: float) -> str:
 
 def _get_compatibility_suggestions(score: float) -> List[str]:
     """
-    获取合婚建议.
+    Get合婚建议.
     """
     if score >= 80:
         return ["天作之合，婚姻美满", "互相扶持，白头偕老", "继续保持良好沟通"]

@@ -33,7 +33,7 @@ class WakeWordPlugin(Plugin):
             logger.error(f"无法导入唤醒词检测器: {e}")
             self.detector = None
         except Exception as e:
-            logger.error(f"唤醒词插件初始化失败: {e}", exc_info=True)
+            logger.error(f"唤醒词插件InitializationFailure: {e}", exc_info=True)
             self.detector = None
 
     async def start(self) -> None:
@@ -43,28 +43,28 @@ class WakeWordPlugin(Plugin):
             # 需要音频编码器以提供原始PCM数据
             audio_codec = getattr(self.app, "audio_codec", None)
             if audio_codec is None:
-                logger.warning("未找到audio_codec，无法启动唤醒词检测")
+                logger.warning("未找到audio_codec，无法Start唤醒词检测")
                 return
             await self.detector.start(audio_codec)
         except Exception as e:
-            logger.error(f"启动唤醒词检测器失败: {e}", exc_info=True)
+            logger.error(f"Start唤醒词检测器Failure: {e}", exc_info=True)
 
     async def stop(self) -> None:
         if self.detector:
             try:
                 await self.detector.stop()
             except Exception as e:
-                logger.warning(f"停止唤醒词检测器失败: {e}")
+                logger.warning(f"Stop唤醒词检测器Failure: {e}")
 
     async def shutdown(self) -> None:
         if self.detector:
             try:
                 await self.detector.stop()
             except Exception as e:
-                logger.warning(f"关闭唤醒词检测器失败: {e}")
+                logger.warning(f"Close唤醒词检测器Failure: {e}")
 
     async def _on_detected(self, wake_word, full_text):
-        # 检测到唤醒词：切到自动对话（根据 AEC 自动选择实时/自动停）
+        # 检测到唤醒词：切到Auto Conversation（根据 AEC 自动选择实时/自动停）
         try:
             # 若正在说话，交给应用的打断/状态机处理
             if hasattr(self.app, "device_state") and hasattr(
@@ -78,12 +78,12 @@ class WakeWordPlugin(Plugin):
                 else:
                     await self.app.start_auto_conversation()
         except Exception as e:
-            logger.error(f"处理唤醒词检测失败: {e}", exc_info=True)
+            logger.error(f"处理唤醒词检测Failure: {e}", exc_info=True)
 
     def _on_error(self, error):
         try:
-            logger.error(f"唤醒词检测错误: {error}")
+            logger.error(f"唤醒词检测Error: {error}")
             if hasattr(self.app, "set_chat_message"):
-                self.app.set_chat_message("assistant", f"[唤醒词错误] {error}")
+                self.app.set_chat_message("assistant", f"[唤醒词Error] {error}")
         except Exception as e:
-            logger.error(f"处理唤醒词错误回调失败: {e}")
+            logger.error(f"处理唤醒词Error回调Failure: {e}")

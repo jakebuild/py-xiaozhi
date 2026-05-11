@@ -34,9 +34,9 @@ def scan_installed_applications() -> List[Dict[str, str]]:
             f"[WindowsScanner] 从开始菜单扫描到 {len(start_menu_apps)} 个主要应用"
         )
     except Exception as e:
-        logger.warning(f"[WindowsScanner] 开始菜单扫描失败: {e}")
+        logger.warning(f"[WindowsScanner] 开始菜单扫描Failure: {e}")
 
-    # 2. 扫描注册表中的主要第三方应用（过滤系统组件）
+    # 2. 扫描Register表中的主要第三方应用（过滤系统组件）
     try:
         logger.info("[WindowsScanner] 开始扫描已安装的主要应用程序")
         registry_apps = _scan_main_registry_apps()
@@ -46,10 +46,10 @@ def scan_installed_applications() -> List[Dict[str, str]]:
             if app["display_name"].lower() not in existing_names:
                 apps.append(app)
         logger.info(
-            f"[WindowsScanner] 从注册表扫描到 {len([a for a in registry_apps if a['display_name'].lower() not in existing_names])} 个新的主要应用"
+            f"[WindowsScanner] 从Register表扫描到 {len([a for a in registry_apps if a['display_name'].lower() not in existing_names])} 个新的主要应用"
         )
     except Exception as e:
-        logger.warning(f"[WindowsScanner] 注册表扫描失败: {e}")
+        logger.warning(f"[WindowsScanner] Register表扫描Failure: {e}")
 
     # 3. 添加常见的系统应用（只保留用户常用的）
     system_apps = [
@@ -94,7 +94,7 @@ def scan_installed_applications() -> List[Dict[str, str]]:
     apps.extend(system_apps)
 
     logger.info(
-        f"[WindowsScanner] Windows应用扫描完成，总共找到 {len(apps)} 个主要应用程序"
+        f"[WindowsScanner] Windows应用扫描Complete，总共找到 {len(apps)} 个主要应用程序"
     )
     return apps
 
@@ -111,7 +111,7 @@ def scan_running_applications() -> List[Dict[str, str]]:
     apps = []
 
     try:
-        # 使用tasklist命令获取进程信息
+        # 使用tasklist命令Get进程信息
         result = subprocess.run(
             ["tasklist", "/fo", "csv", "/v"], capture_output=True, text=True, timeout=10
         )
@@ -121,7 +121,7 @@ def scan_running_applications() -> List[Dict[str, str]]:
 
             for line in lines:
                 try:
-                    # 解析CSV格式
+                    # ParseCSV格式
                     parts = [part.strip('"') for part in line.split('","')]
                     if len(parts) >= 8:
                         image_name = parts[0].strip('"')
@@ -150,7 +150,7 @@ def scan_running_applications() -> List[Dict[str, str]]:
         return apps
 
     except Exception as e:
-        logger.error(f"[WindowsScanner] 扫描运行应用失败: {e}")
+        logger.error(f"[WindowsScanner] 扫描运行应用Failure: {e}")
         return []
 
 
@@ -206,18 +206,18 @@ def _scan_main_start_menu_apps() -> List[Dict[str, str]]:
 
                             except Exception as e:
                                 logger.debug(
-                                    f"[WindowsScanner] 处理快捷方式失败 {file}: {e}"
+                                    f"[WindowsScanner] 处理快捷方式Failure {file}: {e}"
                                 )
 
             except Exception as e:
-                logger.debug(f"[WindowsScanner] 扫描开始菜单失败 {start_path}: {e}")
+                logger.debug(f"[WindowsScanner] 扫描开始菜单Failure {start_path}: {e}")
 
     return apps
 
 
 def _scan_main_registry_apps() -> List[Dict[str, str]]:
     """
-    扫描注册表中的主要应用程序（过滤系统组件）.
+    扫描Register表中的主要应用程序（过滤系统组件）.
     """
     apps = []
 
@@ -256,10 +256,10 @@ def _scan_main_registry_apps() -> List[Dict[str, str]]:
                         )
 
             except json.JSONDecodeError:
-                logger.warning("[WindowsScanner] 无法解析PowerShell输出")
+                logger.warning("[WindowsScanner] 无法ParsePowerShell输出")
 
     except (subprocess.TimeoutExpired, subprocess.SubprocessError) as e:
-        logger.warning(f"[WindowsScanner] PowerShell扫描失败: {e}")
+        logger.warning(f"[WindowsScanner] PowerShell扫描Failure: {e}")
 
     return apps
 
@@ -297,7 +297,7 @@ def _should_include_app(display_name: str, publisher: str = "") -> bool:
         "driver",
         "驱动",
         "update",
-        "更新",
+        "Update",
         "hotfix",
         "patch",
         "补丁",
@@ -502,13 +502,13 @@ def _extract_app_name(image_name: str, window_title: str) -> str:
 
 
 def _resolve_shortcut_target(shortcut_path: str) -> Optional[str]:
-    """解析Windows快捷方式的目标路径.
+    """ParseWindows快捷方式的目标路径.
 
     Args:
         shortcut_path: 快捷方式文件路径
 
     Returns:
-        目标路径，如果解析失败则返回None
+        目标路径，如果ParseFailure则返回None
     """
     try:
         import win32com.client
@@ -521,21 +521,21 @@ def _resolve_shortcut_target(shortcut_path: str) -> Optional[str]:
             return target_path
 
     except ImportError:
-        logger.debug("[WindowsScanner] win32com模块不可用，无法解析快捷方式")
+        logger.debug("[WindowsScanner] win32com模块不可用，无法Parse快捷方式")
     except Exception as e:
-        logger.debug(f"[WindowsScanner] 解析快捷方式失败: {e}")
+        logger.debug(f"[WindowsScanner] Parse快捷方式Failure: {e}")
 
     return None
 
 
 def _clean_app_name(name: str) -> str:
-    """清理应用程序名称，移除版本号和特殊字符.
+    """Cleanup应用程序名称，移除版本号和特殊字符.
 
     Args:
         name: 原始名称
 
     Returns:
-        str: 清理后的名称
+        str: Cleanup后的名称
     """
     if not name:
         return ""

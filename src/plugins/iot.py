@@ -13,7 +13,7 @@ class IoTPlugin(Plugin):
 
     async def setup(self, app: Any) -> None:
         self.app = app
-        # 确保设备初始化完成
+        # 确保设备InitializationComplete
         try:
             from src.iot.thing_manager import ThingManager
 
@@ -24,7 +24,7 @@ class IoTPlugin(Plugin):
 
     async def on_protocol_connected(self, protocol: Any) -> None:
         """
-        协议连接后，发送 IoT 描述符与一次状态。
+        协议Connect后，发送 IoT 描述符与一次状态。
         """
         try:
             from src.iot.thing_manager import ThingManager

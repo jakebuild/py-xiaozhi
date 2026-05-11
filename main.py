@@ -1,3 +1,9 @@
+import ctypes
+try:
+    ctypes.CDLL('libX11.so.6').XInitThreads()
+except Exception:
+    pass
+
 import argparse
 import asyncio
 import signal

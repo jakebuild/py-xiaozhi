@@ -96,7 +96,7 @@ def scan_installed_applications() -> List[Dict[str, str]]:
     ]
     apps.extend(system_apps)
 
-    logger.info(f"[MacScanner] 扫描完成，找到 {len(apps)} 个应用程序")
+    logger.info(f"[MacScanner] 扫描Complete，找到 {len(apps)} 个应用程序")
     return apps
 
 
@@ -112,7 +112,7 @@ def scan_running_applications() -> List[Dict[str, str]]:
     apps = []
 
     try:
-        # 使用ps命令获取进程信息
+        # 使用ps命令Get进程信息
         result = subprocess.run(
             ["ps", "-eo", "pid,ppid,comm,command"],
             capture_output=True,
@@ -148,7 +148,7 @@ def scan_running_applications() -> List[Dict[str, str]]:
         return apps
 
     except Exception as e:
-        logger.error(f"[MacScanner] 扫描运行应用失败: {e}")
+        logger.error(f"[MacScanner] 扫描运行应用Failure: {e}")
         return []
 
 
@@ -308,13 +308,13 @@ def _extract_app_name(comm: str, command: str) -> str:
 
 
 def _clean_app_name(name: str) -> str:
-    """清理应用程序名称，移除版本号和特殊字符.
+    """Cleanup应用程序名称，移除版本号和特殊字符.
 
     Args:
         name: 原始名称
 
     Returns:
-        str: 清理后的名称
+        str: Cleanup后的名称
     """
     if not name:
         return ""

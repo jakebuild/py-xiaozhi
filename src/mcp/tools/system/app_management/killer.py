@@ -1,6 +1,6 @@
-"""统一的应用程序关闭器.
+"""统一的应用程序Close器.
 
-根据系统自动选择对应的关闭器实现
+根据系统自动选择对应的Close器实现
 """
 
 import asyncio
@@ -16,20 +16,20 @@ logger = get_logger(__name__)
 
 
 async def kill_application(args: Dict[str, Any]) -> bool:
-    """关闭应用程序.
+    """Close应用程序.
 
     Args:
         args: 包含应用程序名称的参数字典
             - app_name: 应用程序名称
-            - force: 是否强制关闭（可选，默认False）
+            - force: 是否强制Close（可选，默认False）
 
     Returns:
-        bool: 关闭是否成功
+        bool: Close是否Success
     """
     try:
         app_name = args["app_name"]
         force = args.get("force", False)
-        logger.info(f"[AppKiller] 尝试关闭应用程序: {app_name}, 强制关闭: {force}")
+        logger.info(f"[AppKiller] 尝试Close应用程序: {app_name}, 强制Close: {force}")
 
         # 首先尝试通过扫描找到正在运行的应用程序
         running_apps = await _find_running_applications(app_name)
@@ -38,37 +38,37 @@ async def kill_application(args: Dict[str, Any]) -> bool:
             logger.warning(f"[AppKiller] 未找到正在运行的应用程序: {app_name}")
             return False
 
-        # 按系统选择关闭策略
+        # 按系统选择Close策略
         system = platform.system()
         if system == "Windows":
-            # Windows使用复杂的分组关闭策略
+            # Windows使用复杂的分组Close策略
             success = await asyncio.to_thread(
                 _kill_windows_app_group, running_apps, app_name, force
             )
         else:
-            # macOS和Linux使用简单的逐个关闭策略
+            # macOS和Linux使用简单的逐个Close策略
             success_count = 0
             for app in running_apps:
                 success = await asyncio.to_thread(_kill_app_sync, app, force, system)
                 if success:
                     success_count += 1
                     logger.info(
-                        f"[AppKiller] 成功关闭应用程序: {app['name']} (PID: {app.get('pid', 'N/A')})"
+                        f"[AppKiller] SuccessClose应用程序: {app['name']} (PID: {app.get('pid', 'N/A')})"
                     )
                 else:
                     logger.warning(
-                        f"[AppKiller] 关闭应用程序失败: {app['name']} (PID: {app.get('pid', 'N/A')})"
+                        f"[AppKiller] Failed to close application: {app['name']} (PID: {app.get('pid', 'N/A')})"
                     )
 
             success = success_count > 0
             logger.info(
-                f"[AppKiller] 关闭操作完成，成功关闭 {success_count}/{len(running_apps)} 个进程"
+                f"[AppKiller] Close操作Complete，SuccessClose {success_count}/{len(running_apps)} 个进程"
             )
 
         return success
 
     except Exception as e:
-        logger.error(f"[AppKiller] 关闭应用程序时出错: {e}", exc_info=True)
+        logger.error(f"[AppKiller] Close应用程序时出错: {e}", exc_info=True)
         return False
 
 
@@ -96,11 +96,11 @@ async def list_running_applications(args: Dict[str, Any]) -> str:
             "message": f"找到 {len(apps)} 个正在运行的应用程序",
         }
 
-        logger.info(f"[AppKiller] 列出完成，找到 {len(apps)} 个正在运行的应用程序")
+        logger.info(f"[AppKiller] 列出Complete，找到 {len(apps)} 个正在运行的应用程序")
         return json.dumps(result, ensure_ascii=False, indent=2)
 
     except Exception as e:
-        error_msg = f"列出运行中应用程序失败: {str(e)}"
+        error_msg = f"列出运行中应用程序Failure: {str(e)}"
         logger.error(f"[AppKiller] {error_msg}", exc_info=True)
         return json.dumps(
             {
@@ -123,7 +123,7 @@ async def _find_running_applications(app_name: str) -> List[Dict[str, Any]]:
         匹配的正在运行应用程序列表
     """
     try:
-        # 获取所有正在运行的应用程序
+        # Get所有正在运行的应用程序
         all_apps = await asyncio.to_thread(_list_running_apps_sync, "")
 
         # 使用统一匹配器找到最佳匹配
@@ -176,15 +176,15 @@ def _list_running_apps_sync(filter_name: str = "") -> List[Dict[str, Any]]:
 
 
 def _kill_app_sync(app: Dict[str, Any], force: bool, system: str) -> bool:
-    """同步关闭应用程序.
+    """同步Close应用程序.
 
     Args:
         app: 应用程序信息
-        force: 是否强制关闭
+        force: 是否强制Close
         system: 操作系统类型
 
     Returns:
-        bool: 关闭是否成功
+        bool: Close是否Success
     """
     try:
         pid = app.get("pid")
@@ -208,37 +208,37 @@ def _kill_app_sync(app: Dict[str, Any], force: bool, system: str) -> bool:
             return False
 
     except Exception as e:
-        logger.error(f"[AppKiller] 同步关闭应用程序失败: {e}")
+        logger.error(f"[AppKiller] 同步Failed to close application: {e}")
         return False
 
 
 def _kill_windows_app_group(
     apps: List[Dict[str, Any]], app_name: str, force: bool
 ) -> bool:
-    """Windows系统的分组关闭策略.
+    """Windows系统的分组Close策略.
 
     Args:
         apps: 匹配的应用程序进程列表
         app_name: 应用程序名称
-        force: 是否强制关闭
+        force: 是否强制Close
 
     Returns:
-        bool: 关闭是否成功
+        bool: Close是否Success
     """
     try:
         from .windows.killer import kill_application_group
 
         return kill_application_group(apps, app_name, force)
     except Exception as e:
-        logger.error(f"[AppKiller] Windows分组关闭失败: {e}")
+        logger.error(f"[AppKiller] Windows分组CloseFailure: {e}")
         return False
 
 
 def get_system_killer():
-    """根据当前系统获取对应的关闭器模块.
+    """根据当前系统Get对应的Close器模块.
 
     Returns:
-        对应系统的关闭器模块
+        对应系统的Close器模块
     """
     system = platform.system()
 

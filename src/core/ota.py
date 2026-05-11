@@ -36,30 +36,30 @@ class Ota:
 
     async def init(self):
         """
-        初始化OTA实例.
+        InitializationOTA实例.
         """
         self.local_ip = await self.get_local_ip()
-        # 从配置中获取设备ID（MAC地址）
+        # 从Configuration中Get设备ID（MAC地址）
         self.mac_addr = self.config.get_config("SYSTEM_OPTIONS.DEVICE_ID")
-        # 获取OTA URL
+        # GetOTA URL
         self.ota_version_url = self.config.get_config(
             "SYSTEM_OPTIONS.NETWORK.OTA_VERSION_URL"
         )
 
     async def get_local_ip(self):
         """
-        异步获取本机IP地址.
+        异步Get本机IP地址.
         """
         try:
             loop = asyncio.get_running_loop()
             return await loop.run_in_executor(None, self._sync_get_ip)
         except Exception as e:
-            self.logger.error(f"获取本机 IP 失败：{e}")
+            self.logger.error(f"Get本机 IP Failure：{e}")
             return "127.0.0.1"
 
     def _sync_get_ip(self):
         """
-        同步获取IP地址.
+        同步GetIP地址.
         """
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             s.connect(("8.8.8.8", 80))
@@ -69,7 +69,7 @@ class Ota:
         """
         构建OTA请求的payload.
         """
-        # 从efuse.json获取hmac_key作为elf_sha256
+        # 从efuse.jsonGethmac_key作为elf_sha256
         hmac_key = self.device_fingerprint.get_hmac_key()
         elf_sha256 = hmac_key if hmac_key else "unknown"
 
@@ -119,15 +119,15 @@ class Ota:
 
     async def get_ota_config(self):
         """
-        获取OTA服务器的配置信息（MQTT、WebSocket等）
+        GetOTA服务器的Configuration信息（MQTT、WebSocket等）
         """
         if not self.mac_addr:
-            self.logger.error("设备ID(MAC地址)未配置")
-            raise ValueError("设备ID未配置")
+            self.logger.error("设备ID(MAC地址)未Configuration")
+            raise ValueError("设备ID未Configuration")
 
         if not self.ota_version_url:
-            self.logger.error("OTA URL未配置")
-            raise ValueError("OTA URL未配置")
+            self.logger.error("OTA URL未Configuration")
+            raise ValueError("OTA URL未Configuration")
 
         headers = self.build_headers()
         payload = self.build_payload()
@@ -149,10 +149,10 @@ class Ota:
                 ) as response:
                     # 检查HTTP状态码
                     if response.status != 200:
-                        self.logger.error(f"OTA服务器错误: HTTP {response.status}")
-                        raise ValueError(f"OTA服务器返回错误状态码: {response.status}")
+                        self.logger.error(f"OTA服务器Error: HTTP {response.status}")
+                        raise ValueError(f"OTA服务器返回Error状态码: {response.status}")
 
-                    # 解析JSON数据
+                    # ParseJSON数据
                     response_data = await response.json()
 
                     # 调试信息：打印完整的OTA响应
@@ -164,77 +164,77 @@ class Ota:
                     return response_data
 
         except asyncio.TimeoutError:
-            self.logger.error("OTA请求超时，请检查网络或服务器状态")
-            raise ValueError("OTA请求超时！请稍后重试。")
+            self.logger.error("OTA请求Timeout，请检查网络或服务器状态")
+            raise ValueError("OTA请求Timeout！请稍后重试。")
 
         except aiohttp.ClientError as e:
-            self.logger.error(f"OTA请求失败: {e}")
-            raise ValueError("无法连接到OTA服务器，请检查网络连接！")
+            self.logger.error(f"OTA请求Failure: {e}")
+            raise ValueError("无法Connect到OTA服务器，请检查网络Connect！")
 
     async def update_mqtt_config(self, response_data):
         """
-        更新MQTT配置信息.
+        UpdateMQTTConfiguration信息.
         """
         if "mqtt" in response_data:
-            self.logger.info("发现MQTT配置信息")
+            self.logger.info("发现MQTTConfiguration信息")
             mqtt_info = response_data["mqtt"]
             if mqtt_info:
-                # 更新配置
+                # UpdateConfiguration
                 success = self.config.update_config(
                     "SYSTEM_OPTIONS.NETWORK.MQTT_INFO", mqtt_info
                 )
                 if success:
-                    self.logger.info("MQTT配置已更新")
+                    self.logger.info("MQTTConfiguration已Update")
                     return mqtt_info
                 else:
-                    self.logger.error("MQTT配置更新失败")
+                    self.logger.error("MQTTConfigurationUpdateFailure")
             else:
-                self.logger.warning("MQTT配置为空")
+                self.logger.warning("MQTTConfiguration为空")
         else:
-            self.logger.info("未发现MQTT配置信息")
+            self.logger.info("未发现MQTTConfiguration信息")
 
         return None
 
     async def update_websocket_config(self, response_data):
         """
-        更新WebSocket配置信息.
+        UpdateWebSocketConfiguration信息.
         """
         if "websocket" in response_data:
-            self.logger.info("发现WebSocket配置信息")
+            self.logger.info("发现WebSocketConfiguration信息")
             websocket_info = response_data["websocket"]
 
-            # 更新WebSocket URL
+            # UpdateWebSocket URL
             if "url" in websocket_info:
                 self.config.update_config(
                     "SYSTEM_OPTIONS.NETWORK.WEBSOCKET_URL", websocket_info["url"]
                 )
-                self.logger.info(f"WebSocket URL已更新: {websocket_info['url']}")
+                self.logger.info(f"WebSocket URL已Update: {websocket_info['url']}")
 
-            # 更新WebSocket Token
+            # UpdateWebSocket Token
             token_value = websocket_info.get("token", "test-token") or "test-token"
             self.config.update_config(
                 "SYSTEM_OPTIONS.NETWORK.WEBSOCKET_ACCESS_TOKEN", token_value
             )
-            self.logger.info("WebSocket Token已更新")
+            self.logger.info("WebSocket Token已Update")
 
             return websocket_info
         else:
-            self.logger.info("未发现WebSocket配置信息")
+            self.logger.info("未发现WebSocketConfiguration信息")
 
         return None
 
     async def fetch_and_update_config(self):
         """
-        获取并更新所有配置信息.
+        Get并Update所有Configuration信息.
         """
         try:
-            # 获取OTA配置
+            # GetOTAConfiguration
             response_data = await self.get_ota_config()
 
-            # 更新MQTT配置
+            # UpdateMQTTConfiguration
             mqtt_config = await self.update_mqtt_config(response_data)
 
-            # 更新WebSocket配置
+            # UpdateWebSocketConfiguration
             websocket_config = await self.update_websocket_config(response_data)
 
             # 返回完整的响应数据，供激活流程使用
@@ -245,5 +245,5 @@ class Ota:
             }
 
         except Exception as e:
-            self.logger.error(f"获取并更新配置失败: {e}")
+            self.logger.error(f"Get并UpdateConfigurationFailure: {e}")
             raise

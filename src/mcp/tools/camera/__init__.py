@@ -13,11 +13,11 @@ logger = get_logger(__name__)
 
 def get_camera_instance():
     """
-    根据配置返回对应的摄像头实现.
+    根据Configuration返回对应的摄像头实现.
     """
     config = ConfigManager.get_instance()
 
-    # 检查是否配置了智普AI
+    # 检查是否Configuration了智普AI
     vl_key = config.get_config("CAMERA.VLapi_key")
     vl_url = config.get_config("CAMERA.Local_VL_url")
 

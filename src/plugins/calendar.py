@@ -51,13 +51,13 @@ class CalendarPlugin(Plugin):
             from src.mcp.tools.calendar import get_reminder_service
 
             self._service = get_reminder_service()
-            # 覆盖其应用获取函数，返回适配器对象
+            # 覆盖其应用Get函数，返回适配器对象
             try:
                 setattr(self._service, "_get_application", lambda: self._adapter)
             except Exception:
                 pass
         except Exception as e:
-            logger.error(f"初始化日程提醒服务失败: {e}")
+            logger.error(f"Initialization日程提醒服务Failure: {e}")
             self._service = None
 
     async def start(self) -> None:
@@ -65,13 +65,13 @@ class CalendarPlugin(Plugin):
             return
         try:
             await self._service.start()
-            # 可选：启动时检查今日日程
+            # 可选：Start时检查今日日程
             try:
                 await self._service.check_daily_events()
             except Exception:
                 pass
         except Exception as e:
-            logger.error(f"启动日程提醒服务失败: {e}")
+            logger.error(f"Start日程提醒服务Failure: {e}")
 
     async def stop(self) -> None:
         try:

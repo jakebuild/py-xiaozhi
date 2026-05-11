@@ -49,7 +49,7 @@ class Property:
 
     async def get_state_value(self):
         """
-        获取属性值.
+        Get属性值.
         """
         value = await self.getter()
         # 如果是第一次调用 getter，确定类型
@@ -161,7 +161,7 @@ class Thing:
 
     async def get_state_json(self) -> Dict:
         """
-        获取设备状态.
+        Get设备状态.
         """
         state = {}
         for name, prop in self.properties.items():

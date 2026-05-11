@@ -22,7 +22,7 @@ class ThingManager:
         self.last_states = {}  # 添加状态缓存字典，存储上一次的状态
 
     async def initialize_iot_devices(self, config):
-        """初始化物联网设备.
+        """Initialization物联网设备.
 
         注意：倒计时器功能已迁移到MCP工具中，提供更好的AI集成和状态反馈。
         """
@@ -36,7 +36,7 @@ class ThingManager:
 
     async def get_descriptors_json(self) -> str:
         """
-        获取所有设备的描述符JSON.
+        Get所有设备的描述符JSON.
         """
         # 由于get_descriptor_json()是同步方法（返回静态数据），
         # 这里保持简单的同步调用即可
@@ -44,7 +44,7 @@ class ThingManager:
         return json.dumps(descriptors)
 
     async def get_states_json(self, delta=False) -> Tuple[bool, str]:
-        """获取所有设备的状态JSON.
+        """Get所有设备的状态JSON.
 
         Args:
             delta: 是否只返回变化的部分，True表示只返回变化的部分
@@ -97,13 +97,13 @@ class ThingManager:
             command: 包含name和method等信息的命令字典
 
         Returns:
-            Optional[Any]: 如果找到设备并调用成功，返回调用结果；否则抛出异常
+            Optional[Any]: 如果找到设备并调用Success，返回调用结果；否则抛出Exception
         """
         thing_name = command.get("name")
         for thing in self.things:
             if thing.name == thing_name:
                 return await thing.invoke(command)
 
-        # 记录错误日志
+        # 记录Error日志
         logger.error(f"设备不存在: {thing_name}")
         raise ValueError(f"设备不存在: {thing_name}")

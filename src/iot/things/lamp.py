@@ -12,7 +12,7 @@ class Lamp(Thing):
         # 定义方法 - 使用异步方法处理器
         self.add_method("TurnOn", "打开灯", [], self._turn_on)
 
-        self.add_method("TurnOff", "关闭灯", [], self._turn_off)
+        self.add_method("TurnOff", "Close灯", [], self._turn_off)
 
     async def get_power(self):
         return self.power
@@ -23,4 +23,4 @@ class Lamp(Thing):
 
     async def _turn_off(self, params):
         self.power = False
-        return {"status": "success", "message": "灯已关闭"}
+        return {"status": "success", "message": "灯Closed"}

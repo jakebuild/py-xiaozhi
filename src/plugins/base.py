@@ -21,7 +21,7 @@ class Plugin:
 
     async def start(self) -> None:
         """
-        插件启动（通常在协议连接建立后调用）。
+        插件Start（通常在协议Connect建立后调用）。
         """
         self._started = True
         await asyncio.sleep(0)
@@ -52,13 +52,13 @@ class Plugin:
 
     async def stop(self) -> None:
         """
-        插件停止（在应用 shutdown 前调用）。
+        插件Stop（在应用 shutdown 前调用）。
         """
         self._started = False
         await asyncio.sleep(0)
 
     async def shutdown(self) -> None:
         """
-        插件最终清理（在应用 shutdown 过程中调用）。
+        插件最终Cleanup（在应用 shutdown 过程中调用）。
         """
         await asyncio.sleep(0)

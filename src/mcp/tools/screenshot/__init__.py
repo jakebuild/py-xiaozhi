@@ -11,7 +11,7 @@ logger = get_logger(__name__)
 
 def get_screenshot_camera_instance():
     """
-    获取截图摄像头实例.
+    Get截图摄像头实例.
     """
     return ScreenshotCamera.get_instance()
 
@@ -32,7 +32,7 @@ def take_screenshot(arguments: dict) -> str:
     question = arguments.get("question", "")
     display_id = arguments.get("display", None)
 
-    # 解析display参数
+    # Parsedisplay参数
     if display_id:
         if isinstance(display_id, str):
             if display_id.lower() in ["main", "主屏", "主显示器", "笔记本", "内屏"]:

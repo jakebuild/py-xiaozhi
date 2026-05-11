@@ -41,7 +41,7 @@ class AECProcessor:
         # 缓冲区
         self._reference_buffer = deque()
         self._webrtc_frame_size = 160  # WebRTC标准：16kHz, 10ms = 160 samples
-        self._system_frame_size = AudioConfig.INPUT_FRAME_SIZE  # 系统配置的帧大小
+        self._system_frame_size = AudioConfig.INPUT_FRAME_SIZE  # 系统Configuration的帧大小
 
         # 状态标志
         self._is_initialized = False
@@ -49,7 +49,7 @@ class AECProcessor:
 
     async def initialize(self):
         """
-        初始化AEC处理器.
+        InitializationAEC处理器.
         """
         try:
             if self._is_windows or self._is_linux:
@@ -69,28 +69,28 @@ class AECProcessor:
                 return
 
             self._is_initialized = True
-            logger.info("AEC处理器初始化完成")
+            logger.info("AEC处理器InitializationComplete")
 
         except Exception as e:
-            logger.error(f"AEC处理器初始化失败: {e}")
+            logger.error(f"AEC处理器InitializationFailure: {e}")
             await self.close()
             raise
 
     async def _initialize_apm(self):
         """
-        初始化WebRTC音频处理模块（仅macOS）
+        InitializationWebRTC音频处理模块（仅macOS）
         """
         if not self._is_macos:
             logger.warning("非macOS平台调用了_initialize_apm，这不应该发生")
             return
 
         try:
-            # 延迟导入，仅在macOS需要时加载本地库
+            # 延迟导入，仅在macOS需要时Load本地库
             from libs.webrtc_apm import WebRTCAudioProcessing, create_default_config
 
             self.apm = WebRTCAudioProcessing()
 
-            # 创建配置
+            # 创建Configuration
             self.apm_config = create_default_config()
 
             # 启用回声消除
@@ -106,12 +106,12 @@ class AECProcessor:
             self.apm_config.high_pass.enabled = True
             self.apm_config.high_pass.apply_in_full_band = True
 
-            # 应用配置
+            # 应用Configuration
             result = self.apm.apply_config(self.apm_config)
             if result != 0:
-                raise RuntimeError(f"WebRTC APM配置失败，错误码: {result}")
+                raise RuntimeError(f"WebRTC APMConfigurationFailure，Error码: {result}")
 
-            # 创建流配置
+            # 创建流Configuration
             sample_rate = AudioConfig.INPUT_SAMPLE_RATE  # 16kHz
             channels = AudioConfig.CHANNELS  # 1
 
@@ -121,15 +121,15 @@ class AECProcessor:
             # 设置流延迟
             self.apm.set_stream_delay_ms(40)  # 50ms延迟
 
-            logger.info("WebRTC APM初始化完成")
+            logger.info("WebRTC APMInitializationComplete")
 
         except Exception as e:
-            logger.error(f"WebRTC APM初始化失败: {e}")
+            logger.error(f"WebRTC APMInitializationFailure: {e}")
             raise
 
     async def _initialize_reference_capture(self):
         """
-        初始化参考信号捕获（仅macOS）
+        Initialization参考信号捕获（仅macOS）
         """
         if not self._is_macos:
             return
@@ -179,12 +179,12 @@ class AECProcessor:
             self.reference_stream.start()
 
             logger.info(
-                f"参考信号捕获已启动: [{self.reference_device_id}] {reference_device['name']}"
+                f"参考信号捕获Started: [{self.reference_device_id}] {reference_device['name']}"
             )
 
         except Exception as e:
-            logger.error(f"参考信号捕获初始化失败: {e}")
-            # 不抛出异常，允许AEC在没有参考信号的情况下工作
+            logger.error(f"参考信号捕获InitializationFailure: {e}")
+            # 不抛出Exception，允许AEC在没有参考信号的情况下工作
 
     def _find_blackhole_device(self) -> Optional[Dict[str, Any]]:
         """
@@ -215,7 +215,7 @@ class AECProcessor:
             return None
 
         except Exception as e:
-            logger.error(f"查找BlackHole设备失败: {e}")
+            logger.error(f"查找BlackHole设备Failure: {e}")
             return None
 
     def _reference_callback(self, indata, frames, time_info, status):
@@ -226,7 +226,7 @@ class AECProcessor:
         _ = frames, time_info
 
         if status and "overflow" not in str(status).lower():
-            logger.warning(f"参考信号流状态: {status}")
+            logger.warning(f"参考信号流Status: {status}")
 
         if self._is_closing:
             return
@@ -261,7 +261,7 @@ class AECProcessor:
                 self._reference_buffer.popleft()
 
         except Exception as e:
-            logger.error(f"参考信号回调错误: {e}")
+            logger.error(f"参考信号回调Error: {e}")
 
     def _reference_finished_callback(self):
         """
@@ -308,7 +308,7 @@ class AECProcessor:
                 return self._process_chunked_aec_frames(capture_audio, num_chunks)
 
         except Exception as e:
-            logger.error(f"AEC处理失败: {e}")
+            logger.error(f"AEC处理Failure: {e}")
             return capture_audio
 
     def _process_single_aec_frame(self, capture_audio: np.ndarray) -> np.ndarray:
@@ -322,7 +322,7 @@ class AECProcessor:
             # 仅在macOS导入ctypes
             import ctypes
 
-            # 获取参考信号
+            # Get参考信号
             reference_audio = self._get_reference_frame(self._webrtc_frame_size)
 
             # 创建ctypes缓冲区
@@ -343,7 +343,7 @@ class AECProcessor:
             )
 
             if render_result != 0:
-                logger.warning(f"参考信号处理失败，错误码: {render_result}")
+                logger.warning(f"参考信号处理Failure，Error码: {render_result}")
 
             # 然后处理采集信号（capture stream）
             capture_result = self.apm.process_stream(
@@ -354,14 +354,14 @@ class AECProcessor:
             )
 
             if capture_result != 0:
-                logger.warning(f"采集信号处理失败，错误码: {capture_result}")
+                logger.warning(f"采集信号处理Failure，Error码: {capture_result}")
                 return capture_audio
 
             # 转换回numpy数组
             return np.array(processed_capture, dtype=np.int16)
 
         except Exception as e:
-            logger.error(f"AEC帧处理失败: {e}")
+            logger.error(f"AEC帧处理Failure: {e}")
             return capture_audio
 
     def _process_chunked_aec_frames(
@@ -387,7 +387,7 @@ class AECProcessor:
 
     def _get_reference_frame(self, frame_size: int) -> np.ndarray:
         """
-        获取指定大小的参考信号帧.
+        Get指定大小的参考信号帧.
         """
         # 如果没有参考信号或缓冲区不足，返回静音
         if len(self._reference_buffer) < frame_size:
@@ -402,39 +402,39 @@ class AECProcessor:
 
     async def close(self):
         """
-        关闭AEC处理器.
+        CloseAEC处理器.
         """
         if self._is_closing:
             return
 
         self._is_closing = True
-        logger.info("开始关闭AEC处理器...")
+        logger.info("开始CloseAEC处理器...")
 
         try:
-            # 仅在 macOS 平台清理 WebRTC 相关资源
+            # 仅在 macOS 平台Cleanup WebRTC 相关资源
             if self._is_macos:
-                # 停止参考信号流
+                # Stop参考信号流
                 if self.reference_stream:
                     try:
                         self.reference_stream.stop()
                         self.reference_stream.close()
                     except Exception as e:
-                        logger.warning(f"关闭参考信号流失败: {e}")
+                        logger.warning(f"Close参考信号流Failure: {e}")
                     finally:
                         self.reference_stream = None
 
-                # 清理重采样器
+                # Cleanup重采样器
                 if self.reference_resampler:
                     try:
-                        # 刷新重采样器缓冲区
+                        # Refresh重采样器缓冲区
                         empty_array = np.array([], dtype=np.int16)
                         self.reference_resampler.resample_chunk(empty_array, last=True)
                     except Exception as e:
-                        logger.debug(f"刷新参考信号重采样器缓冲区失败: {e}")
+                        logger.debug(f"Refresh参考信号重采样器缓冲区Failure: {e}")
                     finally:
                         self.reference_resampler = None
 
-                # 清理WebRTC APM
+                # CleanupWebRTC APM
                 if self.apm:
                     try:
                         if self.capture_config:
@@ -442,18 +442,18 @@ class AECProcessor:
                         if self.render_config:
                             self.apm.destroy_stream_config(self.render_config)
                     except Exception as e:
-                        logger.warning(f"清理APM配置失败: {e}")
+                        logger.warning(f"CleanupAPMConfigurationFailure: {e}")
                     finally:
                         self.capture_config = None
                         self.render_config = None
                         self.apm = None
 
-            # 清理缓冲区
+            # Cleanup缓冲区
             self._reference_buffer.clear()
             self._resample_reference_buffer.clear()
 
             self._is_initialized = False
-            logger.info("AEC处理器已关闭")
+            logger.info("AEC处理器Closed")
 
         except Exception as e:
-            logger.error(f"关闭AEC处理器时发生错误: {e}")
+            logger.error(f"CloseAEC处理器时发生Error: {e}")

@@ -23,12 +23,12 @@ class ProfessionalAnalyzer:
 
     def __init__(self):
         """
-        初始化分析器.
+        Initialization分析器.
         """
 
     def get_ten_gods_analysis(self, day_master: str, other_stem: str) -> str:
         """
-        获取十神分析.
+        Get十神分析.
         """
         return get_ten_gods_relation(day_master, other_stem)
 
@@ -349,7 +349,7 @@ class ProfessionalAnalyzer:
 
     def get_detailed_fortune_analysis(self, eight_char_data: Dict[str, Any]) -> str:
         """
-        获取详细的命理分析文本.
+        Get详细的命理分析文本.
         """
         analysis = self.analyze_eight_char_structure(eight_char_data)
 
@@ -416,7 +416,7 @@ _professional_analyzer = None
 
 def get_professional_analyzer() -> ProfessionalAnalyzer:
     """
-    获取专业分析器单例.
+    Get专业分析器单例.
     """
     global _professional_analyzer
     if _professional_analyzer is None:

@@ -44,7 +44,7 @@ class BaziEngine:
     # 动态构建地支映射 - 基于 professional_data.py 的数据
     EARTH_BRANCHES = {}
     for i, zhi in enumerate(ZHI):
-        # 获取地支的藏干
+        # Get地支的藏干
         cang_gan = ZHI_CANG_GAN.get(zhi, {})
         cang_gan_list = list(cang_gan.keys())
 
@@ -61,20 +61,20 @@ class BaziEngine:
 
     def __init__(self):
         """
-        初始化.
+        Initialization.
         """
 
     def parse_solar_time(self, iso_date: str) -> SolarTime:
         """
-        解析公历时间字符串（支持多种格式）- 使用pendulum优化，增强时区处理.
+        Parse公历时间字符串（支持多种格式）- 使用pendulum优化，增强时区处理.
         """
         try:
-            # 使用pendulum解析时间，支持更多格式
+            # 使用pendulumParse时间，支持更多格式
             dt = pendulum.parse(iso_date)
 
             # 智能时区处理
             if dt.timezone_name == "UTC":
-                # 如果pendulum解析为UTC（说明原始输入没有时区），将其当作北京时间处理
+                # 如果pendulumParse为UTC（说明原始输入没有时区），将其当作北京时间处理
                 dt = dt.replace(tzinfo=pendulum.timezone("Asia/Shanghai"))
             elif dt.timezone_name is None:
                 # 如果没有时区信息，将其设置为北京时间
@@ -92,7 +92,7 @@ class BaziEngine:
                 second=dt.second,
             )
         except Exception:
-            # 如果pendulum解析失败，尝试其他格式
+            # 如果pendulumParseFailure，尝试其他格式
             formats = [
                 "%Y-%m-%dT%H:%M:%S+08:00",
                 "%Y-%m-%dT%H:%M:%S+0800",
@@ -122,7 +122,7 @@ class BaziEngine:
 
             if dt is None:
                 raise ValueError(
-                    f"无法解析时间格式: {iso_date}，支持的格式包括ISO8601、中文格式等"
+                    f"无法Parse时间格式: {iso_date}，支持的格式包括ISO8601、中文格式等"
                 )
 
             return SolarTime(
@@ -169,7 +169,7 @@ class BaziEngine:
                 is_leap=is_leap,
             )
         except Exception as e:
-            raise ValueError(f"公历转农历失败: {e}")
+            raise ValueError(f"公历转农历Failure: {e}")
 
     def lunar_to_solar(self, lunar_time: LunarTime) -> SolarTime:
         """
@@ -209,7 +209,7 @@ class BaziEngine:
                 second=solar.getSecond(),
             )
         except Exception as e:
-            raise ValueError(f"农历转公历失败: {e}")
+            raise ValueError(f"农历转公历Failure: {e}")
 
     def build_eight_char(self, solar_time: SolarTime) -> EightChar:
         """
@@ -228,22 +228,22 @@ class BaziEngine:
             lunar = solar.getLunar()
             bazi = lunar.getEightChar()
 
-            # 获取年柱
+            # Get年柱
             year_gan = bazi.getYearGan()
             year_zhi = bazi.getYearZhi()
             year_cycle = self._create_sixty_cycle(year_gan, year_zhi)
 
-            # 获取月柱
+            # Get月柱
             month_gan = bazi.getMonthGan()
             month_zhi = bazi.getMonthZhi()
             month_cycle = self._create_sixty_cycle(month_gan, month_zhi)
 
-            # 获取日柱
+            # Get日柱
             day_gan = bazi.getDayGan()
             day_zhi = bazi.getDayZhi()
             day_cycle = self._create_sixty_cycle(day_gan, day_zhi)
 
-            # 获取时柱
+            # Get时柱
             time_gan = bazi.getTimeGan()
             time_zhi = bazi.getTimeZhi()
             time_cycle = self._create_sixty_cycle(time_gan, time_zhi)
@@ -252,7 +252,7 @@ class BaziEngine:
                 year=year_cycle, month=month_cycle, day=day_cycle, hour=time_cycle
             )
         except Exception as e:
-            raise ValueError(f"构建八字失败: {e}")
+            raise ValueError(f"构建八字Failure: {e}")
 
     def _create_sixty_cycle(self, gan_name: str, zhi_name: str) -> SixtyCycle:
         """
@@ -266,8 +266,8 @@ class BaziEngine:
             # 使用纳音数据
             sound = self._get_nayin(gan_name, zhi_name)
         except Exception as e:
-            # 记录具体错误，但不影响整体功能
-            print(f"纳音计算失败: {gan_name}{zhi_name} - {e}")
+            # 记录具体Error，但不影响整体功能
+            print(f"纳音计算Failure: {gan_name}{zhi_name} - {e}")
             sound = "未知"
 
         # 计算旬和空亡 - 简化实现
@@ -284,14 +284,14 @@ class BaziEngine:
 
     def _get_nayin(self, gan: str, zhi: str) -> str:
         """
-        获取纳音.
+        Get纳音.
         """
         from .professional_data import get_nayin
 
         return get_nayin(gan, zhi)
 
     def _get_ten(self, gan: str, zhi: str) -> str:
-        """获取旬 - 使用六十甲子旬空算法"""
+        """Get旬 - 使用六十甲子旬空算法"""
         from .professional_data import GAN, ZHI
 
         try:
@@ -316,11 +316,11 @@ class BaziEngine:
                 # 使用更精确的计算方法
                 return self._calculate_xun_by_position(jiazi_number)
         except (ValueError, IndexError) as e:
-            print(f"旬计算失败: {gan}{zhi} - {e}")
+            print(f"旬计算Failure: {gan}{zhi} - {e}")
             return "甲子"
 
     def _get_kong_wang(self, gan: str, zhi: str) -> List[str]:
-        """获取空亡 - 使用传统旬空算法"""
+        """Get空亡 - 使用传统旬空算法"""
         from .professional_data import GAN, ZHI
 
         try:
@@ -351,7 +351,7 @@ class BaziEngine:
                 # 备用计算方法
                 return self._calculate_kong_wang_by_position(jiazi_number)
         except (ValueError, IndexError) as e:
-            print(f"空亡计算失败: {gan}{zhi} - {e}")
+            print(f"空亡计算Failure: {gan}{zhi} - {e}")
             return ["戌", "亥"]  # 默认返回甲子旬空亡
 
     def format_solar_time(self, solar_time: SolarTime) -> str:
@@ -369,7 +369,7 @@ class BaziEngine:
     def get_chinese_calendar(
         self, solar_time: Optional[SolarTime] = None
     ) -> ChineseCalendar:
-        """获取中国传统历法信息 - 使用lunar-python"""
+        """Get中国传统历法信息 - 使用lunar-python"""
         if solar_time is None:
             # 使用今天
             now = pendulum.now("Asia/Shanghai")
@@ -388,7 +388,7 @@ class BaziEngine:
             )
             lunar = solar.getLunar()
 
-            # 获取详细信息
+            # Get详细信息
             bazi = lunar.getEightChar()
 
             return ChineseCalendar(
@@ -416,7 +416,7 @@ class BaziEngine:
                 avoid=", ".join(lunar.getDayJi()[:5]),  # 取前5个
             )
         except Exception as e:
-            raise ValueError(f"获取黄历信息失败: {e}")
+            raise ValueError(f"Get黄历信息Failure: {e}")
 
     def _calculate_xun_by_position(self, jiazi_number: int) -> str:
         """
@@ -454,7 +454,7 @@ class BaziEngine:
 
     def get_detailed_lunar_info(self, solar_time: SolarTime) -> Dict[str, Any]:
         """
-        获取详细的农历信息.
+        Get详细的农历信息.
         """
         try:
             solar = Solar.fromYmdHms(
@@ -467,12 +467,12 @@ class BaziEngine:
             )
             lunar = solar.getLunar()
 
-            # 获取节气信息
+            # Get节气信息
             current_jieqi = lunar.getJieQi()
             next_jieqi = lunar.getNextJieQi()
             prev_jieqi = lunar.getPrevJieQi()
 
-            # 获取更多传统信息
+            # Get更多传统信息
             return {
                 "current_jieqi": current_jieqi,
                 "next_jieqi": next_jieqi.toString() if next_jieqi else None,
@@ -496,7 +496,7 @@ class BaziEngine:
                 "day_clash": lunar.getDayChongDesc(),
             }
         except Exception as e:
-            print(f"获取详细农历信息失败: {e}")
+            print(f"Get详细农历信息Failure: {e}")
             return {}
 
 
@@ -506,7 +506,7 @@ _bazi_engine = None
 
 def get_bazi_engine() -> BaziEngine:
     """
-    获取八字引擎单例.
+    Get八字引擎单例.
     """
     global _bazi_engine
     if _bazi_engine is None:

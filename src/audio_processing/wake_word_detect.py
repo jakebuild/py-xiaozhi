@@ -34,14 +34,14 @@ class WakeWordDetector:
         self.on_detected_callback: Optional[Callable] = None
         self.on_error: Optional[Callable] = None
 
-        # 配置检查
+        # Configuration检查
         config = ConfigManager.get_instance()
         if not config.get_config("WAKE_WORD_OPTIONS.USE_WAKE_WORD", False):
-            logger.info("唤醒词功能已禁用")
+            logger.info("Wake word feature disabled")
             self.enabled = False
             return
 
-        # 基本参数初始化
+        # 基本参数Initialization
         self.enabled = True
         self.sample_rate = AudioConfig.INPUT_SAMPLE_RATE
 
@@ -49,16 +49,16 @@ class WakeWordDetector:
         self.keyword_spotter = None
         self.stream = None
 
-        # 初始化配置
+        # InitializationConfiguration
         self._load_config(config)
         self._init_kws_model()
         self._validate_config()
 
     def _load_config(self, config):
         """
-        加载配置参数.
+        LoadConfiguration参数.
         """
-        # 模型路径配置
+        # 模型路径Configuration
         model_path = config.get_config("WAKE_WORD_OPTIONS.MODEL_PATH", "models")
         self.model_dir = resource_finder.find_directory(model_path)
 
@@ -69,14 +69,14 @@ class WakeWordDetector:
                 f"ResourceFinder未找到模型目录，使用原始路径: {self.model_dir}"
             )
 
-        # KWS参数配置 - 优化速度
+        # KWS参数Configuration - 优化速度
         self.num_threads = config.get_config(
             "WAKE_WORD_OPTIONS.NUM_THREADS", 4
         )  # 增加线程数
         self.provider = config.get_config("WAKE_WORD_OPTIONS.PROVIDER", "cpu")
         self.max_active_paths = config.get_config(
             "WAKE_WORD_OPTIONS.MAX_ACTIVE_PATHS", 2
-        )  # 减少搜索路径
+        )  # 减少Search路径
         self.keywords_score = config.get_config(
             "WAKE_WORD_OPTIONS.KEYWORDS_SCORE", 1.8
         )  # 降低分数提升速度
@@ -88,12 +88,12 @@ class WakeWordDetector:
         )
 
         logger.info(
-            f"KWS配置加载完成 - 阈值: {self.keywords_threshold}, 分数: {self.keywords_score}"
+            f"KWSConfigurationLoadComplete - 阈值: {self.keywords_threshold}, 分数: {self.keywords_score}"
         )
 
     def _init_kws_model(self):
         """
-        初始化Sherpa-ONNX KeywordSpotter模型.
+        InitializationSherpa-ONNX KeywordSpotter模型.
         """
         try:
             # 检查模型文件
@@ -114,7 +114,7 @@ class WakeWordDetector:
                 if not file_path.exists():
                     raise FileNotFoundError(f"模型文件不存在: {file_path}")
 
-            logger.info(f"加载Sherpa-ONNX KeywordSpotter模型: {self.model_dir}")
+            logger.info(f"LoadSherpa-ONNX KeywordSpotter模型: {self.model_dir}")
 
             # 创建KeywordSpotter
             self.keyword_spotter = sherpa_onnx.KeywordSpotter(
@@ -133,10 +133,10 @@ class WakeWordDetector:
                 provider=self.provider,
             )
 
-            logger.info("Sherpa-ONNX KeywordSpotter模型加载成功")
+            logger.info("Sherpa-ONNX KeywordSpotter模型LoadSuccess")
 
         except Exception as e:
-            logger.error(f"Sherpa-ONNX KeywordSpotter初始化失败: {e}", exc_info=True)
+            logger.error(f"Sherpa-ONNX KeywordSpotterInitializationFailure: {e}", exc_info=True)
             self.enabled = False
 
     def on_detected(self, callback: Callable):
@@ -153,14 +153,14 @@ class WakeWordDetector:
             # 将音频数据放入队列，由检测循环异步处理
             self._audio_queue.put_nowait(audio_data.copy())
         except asyncio.QueueFull:
-            # 队列满时丢弃最旧数据
+            # 队列满时Discarding最旧数据
             try:
                 self._audio_queue.get_nowait()
                 self._audio_queue.put_nowait(audio_data.copy())
             except asyncio.QueueEmpty:
                 self._audio_queue.put_nowait(audio_data.copy())
         except Exception as e:
-            logger.debug(f"音频数据入队失败: {e}")
+            logger.debug(f"音频数据入队Failure: {e}")
 
     async def start(self, audio_codec) -> bool:
         if not self.enabled:
@@ -168,7 +168,7 @@ class WakeWordDetector:
             return False
 
         if not self.keyword_spotter:
-            logger.error("KeywordSpotter未初始化")
+            logger.error("KeywordSpotter未Initialization")
             return False
 
         try:
@@ -179,16 +179,16 @@ class WakeWordDetector:
             # 创建检测流
             self.stream = self.keyword_spotter.create_stream()
 
-            # 注册为音频监听器（观察者模式）
+            # Register为音频监听器（观察者模式）
             self.audio_codec.add_audio_listener(self)
 
-            # 启动检测任务
+            # Start检测任务
             self.detection_task = asyncio.create_task(self._detection_loop())
 
-            logger.info("Sherpa-ONNX KeywordSpotter检测器启动成功（观察者模式）")
+            logger.info("Sherpa-ONNX KeywordSpotter检测器StartSuccess（观察者模式）")
             return True
         except Exception as e:
-            logger.error(f"启动KeywordSpotter检测器失败: {e}")
+            logger.error(f"StartKeywordSpotter检测器Failure: {e}")
             self.enabled = False
             return False
 
@@ -216,9 +216,9 @@ class WakeWordDetector:
                 break
             except Exception as e:
                 error_count += 1
-                logger.error(f"KWS检测循环错误({error_count}/{MAX_ERRORS}): {e}")
+                logger.error(f"KWS检测循环Error({error_count}/{MAX_ERRORS}): {e}")
 
-                # 调用错误回调
+                # 调用Error回调
                 if self.on_error:
                     try:
                         if asyncio.iscoroutinefunction(self.on_error):
@@ -226,10 +226,10 @@ class WakeWordDetector:
                         else:
                             self.on_error(e)
                     except Exception as callback_error:
-                        logger.error(f"执行错误回调时失败: {callback_error}")
+                        logger.error(f"执行Error回调时Failure: {callback_error}")
 
                 if error_count >= MAX_ERRORS:
-                    logger.critical("达到最大错误次数，停止KWS检测")
+                    logger.critical("达到最大Error次数，StopKWS检测")
                     break
                 await asyncio.sleep(1)
 
@@ -269,8 +269,8 @@ class WakeWordDetector:
                     self.keyword_spotter.reset_stream(self.stream)
 
         except Exception as e:
-            logger.error(f"KWS音频处理错误: {e}", exc_info=True)
-            raise  # 重新抛出异常,让 _detection_loop 捕获
+            logger.error(f"KWS音频处理Error: {e}", exc_info=True)
+            raise  # 重新抛出Exception,让 _detection_loop 捕获
 
     async def _handle_detection_result(self, result):
         """
@@ -291,11 +291,11 @@ class WakeWordDetector:
                 else:
                     self.on_detected_callback(result, result)
             except Exception as e:
-                logger.error(f"唤醒词回调执行失败: {e}")
+                logger.error(f"唤醒词回调执行Failure: {e}")
 
     async def stop(self):
         """
-        停止检测器.
+        Stop检测器.
         """
         self.is_running_flag = False
 
@@ -317,11 +317,11 @@ class WakeWordDetector:
             except asyncio.QueueEmpty:
                 break
 
-        logger.info("Sherpa-ONNX KeywordSpotter检测器已停止")
+        logger.info("Sherpa-ONNX KeywordSpotter检测器已Stop")
 
     def _validate_config(self):
         """
-        验证配置参数.
+        验证Configuration参数.
         """
         if not self.enabled:
             return
@@ -336,5 +336,5 @@ class WakeWordDetector:
             self.keywords_score = 2.0
 
         logger.info(
-            f"KWS配置验证完成 - 阈值: {self.keywords_threshold}, 分数: {self.keywords_score}"
+            f"KWSConfiguration验证Complete - 阈值: {self.keywords_threshold}, 分数: {self.keywords_score}"
         )

@@ -27,19 +27,19 @@ class CalendarReminderService:
 
     def _get_application(self):
         """
-        延迟加载获取应用实例.
+        延迟LoadGet应用实例.
         """
         try:
             from src.application import Application
 
             return Application.get_instance()
         except Exception as e:
-            logger.warning(f"获取应用实例失败: {e}")
+            logger.warning(f"Get应用实例Failure: {e}")
             return None
 
     async def start(self):
         """
-        启动提醒服务.
+        Start提醒服务.
         """
         if self.is_running:
             logger.warning("提醒服务已在运行")
@@ -47,14 +47,14 @@ class CalendarReminderService:
 
         self.is_running = True
         self._task = asyncio.create_task(self._reminder_loop())
-        logger.info("日程提醒服务已启动")
+        logger.info("Reminder service started")
 
-        # 程序启动时重置未来事件的提醒标志
+        # 程序Start时重置未来事件的提醒标志
         await self.reset_reminder_flags_for_future_events()
 
     async def stop(self):
         """
-        停止提醒服务.
+        Stop提醒服务.
         """
         if not self.is_running:
             return
@@ -68,18 +68,18 @@ class CalendarReminderService:
                 pass
             self._task = None
 
-        logger.info("日程提醒服务已停止")
+        logger.info("日程提醒服务已Stop")
 
     async def _reminder_loop(self):
         """
         提醒检查循环.
         """
-        logger.info("开始日程提醒检查循环")
+        logger.info("Starting reminder check loop")
 
         while self.is_running:
             try:
                 await self._check_and_send_reminders()
-                # 定期清理过期事件的提醒标志
+                # 定期Cleanup过期事件的提醒标志
                 await self._cleanup_expired_reminders()
                 await asyncio.sleep(self.check_interval)
             except asyncio.CancelledError:
@@ -122,7 +122,7 @@ class CalendarReminderService:
                 await self._send_reminder(dict(reminder))
 
         except Exception as e:
-            logger.error(f"检查提醒失败: {e}", exc_info=True)
+            logger.error(f"检查提醒Failure: {e}", exc_info=True)
 
     async def _send_reminder(self, event_data: dict):
         """
@@ -170,7 +170,7 @@ class CalendarReminderService:
             # 序列化为JSON字符串
             reminder_json = json.dumps(reminder_message, ensure_ascii=False)
 
-            # 获取应用实例并调用TTS方法
+            # Get应用实例并调用TTS方法
             application = self._get_application()
             if application and hasattr(application, "_send_text_tts"):
                 await application._send_text_tts(reminder_json)
@@ -182,7 +182,7 @@ class CalendarReminderService:
             await self._mark_reminder_sent(event_id)
 
         except Exception as e:
-            logger.error(f"发送提醒失败: {e}", exc_info=True)
+            logger.error(f"发送提醒Failure: {e}", exc_info=True)
 
     def _format_reminder_text(
         self, title: str, time_str: str, category: str, description: str
@@ -221,11 +221,11 @@ class CalendarReminderService:
             logger.debug(f"已标记提醒为已发送: {event_id}")
 
         except Exception as e:
-            logger.error(f"标记提醒已发送失败: {e}", exc_info=True)
+            logger.error(f"标记提醒已发送Failure: {e}", exc_info=True)
 
     async def check_daily_events(self):
         """
-        检查今日事件（可在程序启动时调用）
+        检查今日事件（可在程序Start时调用）
         """
         try:
             now = datetime.now()
@@ -258,17 +258,17 @@ class CalendarReminderService:
 
                 summary_json = json.dumps(summary_message, ensure_ascii=False)
 
-                # 获取应用实例并发送日程摘要
+                # Get应用实例并发送日程摘要
                 application = self._get_application()
                 if application and hasattr(application, "_send_text_tts"):
                     await application._send_text_tts(summary_json)
                     logger.info("已发送今日日程摘要")
 
             else:
-                logger.info("今日无日程安排")
+                logger.info("No schedule today")
 
         except Exception as e:
-            logger.error(f"检查今日事件失败: {e}", exc_info=True)
+            logger.error(f"检查今日事件Failure: {e}", exc_info=True)
 
     def _format_daily_summary(self, events) -> str:
         """
@@ -291,7 +291,7 @@ class CalendarReminderService:
 
     async def reset_reminder_flags_for_future_events(self):
         """
-        重置未来事件的提醒标志（程序重启时调用）
+        重置未来事件的提醒标志（程序Restart时调用）
         """
         try:
             now = datetime.now()
@@ -314,11 +314,11 @@ class CalendarReminderService:
                 logger.info(f"已重置 {reset_count} 个未来事件的提醒标志")
 
         except Exception as e:
-            logger.error(f"重置提醒标志失败: {e}", exc_info=True)
+            logger.error(f"重置提醒标志Failure: {e}", exc_info=True)
 
     async def _cleanup_expired_reminders(self):
         """
-        清理过期事件的提醒标志（超过24小时的过期事件）
+        Cleanup过期事件的提醒标志（超过24小时的过期事件）
         """
         try:
             now = datetime.now()
@@ -338,10 +338,10 @@ class CalendarReminderService:
                 conn.commit()
 
             if cleanup_count > 0:
-                logger.info(f"已清理 {cleanup_count} 个过期事件的提醒标志")
+                logger.info(f"已Cleanup {cleanup_count} 个过期事件的提醒标志")
 
         except Exception as e:
-            logger.error(f"清理过期提醒标志失败: {e}", exc_info=True)
+            logger.error(f"Cleanup过期提醒标志Failure: {e}", exc_info=True)
 
 
 # 全局提醒服务实例
@@ -350,7 +350,7 @@ _reminder_service = None
 
 def get_reminder_service() -> CalendarReminderService:
     """
-    获取提醒服务单例.
+    Get提醒服务单例.
     """
     global _reminder_service
     if _reminder_service is None:

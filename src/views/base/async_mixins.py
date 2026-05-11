@@ -36,7 +36,7 @@ class AsyncMixin:
                 if callback:
                     callback(result)
             except Exception as e:
-                self.logger.error(f"异步任务执行失败: {e}", exc_info=True)
+                self.logger.error(f"异步任务执行Failure: {e}", exc_info=True)
                 if error_callback:
                     error_callback(e)
 
@@ -45,7 +45,7 @@ class AsyncMixin:
 
     async def cleanup_async_tasks(self):
         """
-        清理所有异步任务.
+        Cleanup所有异步任务.
         """
         if self._async_tasks:
             for task in self._async_tasks.copy():
@@ -79,7 +79,7 @@ class AsyncSignalEmitter(QObject):
 
     def emit_error(self, error_message: str):
         """
-        发射错误信号.
+        发射Error信号.
         """
         self.error_occurred.emit(error_message)
 

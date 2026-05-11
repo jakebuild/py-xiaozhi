@@ -1,5 +1,5 @@
 """
-日程管理器 负责日程数据的存储、查询、更新等核心功能.
+日程管理器 负责日程数据的存储、查询、Update等核心功能.
 """
 
 import os
@@ -25,7 +25,7 @@ class CalendarManager:
 
     def init_tools(self, add_tool, PropertyList, Property, PropertyType):
         """
-        初始化并注册所有日程管理工具.
+        Initialization并Register所有日程管理工具.
         """
         from .tools import (
             create_event,
@@ -114,7 +114,7 @@ class CalendarManager:
             )
         )
 
-        # 获取即将到来的日程
+        # Get即将到来的日程
         upcoming_events_props = PropertyList(
             [Property("hours", PropertyType.INTEGER, default_value=24)]
         )
@@ -142,7 +142,7 @@ class CalendarManager:
             )
         )
 
-        # 更新日程
+        # Update日程
         update_event_props = PropertyList(
             [
                 Property("event_id", PropertyType.STRING),
@@ -182,7 +182,7 @@ class CalendarManager:
             )
         )
 
-        # 删除日程
+        # Delete日程
         delete_event_props = PropertyList([Property("event_id", PropertyType.STRING)])
         add_tool(
             (
@@ -202,7 +202,7 @@ class CalendarManager:
             )
         )
 
-        # 批量删除日程
+        # 批量Delete日程
         delete_batch_props = PropertyList(
             [
                 Property("start_date", PropertyType.STRING, default_value=""),
@@ -249,7 +249,7 @@ class CalendarManager:
             )
         )
 
-        # 获取分类
+        # Get分类
         add_tool(
             (
                 "self.calendar.get_categories",
@@ -283,19 +283,19 @@ class CalendarManager:
             project_root = get_project_root()
             json_file = project_root / "cache" / "calendar_data.json"
         except Exception:
-            # 如果无法获取项目根目录，检查用户缓存目录
+            # 如果无法Get项目根目录，检查用户缓存目录
             user_cache_dir = get_user_cache_dir(create=False)
             json_file = user_cache_dir / "calendar_data.json"
 
         if os.path.exists(json_file):
             logger.info("发现旧的JSON数据文件，开始迁移到SQLite...")
             if self.db.migrate_from_json(json_file):
-                # 迁移成功后备份原文件
+                # 迁移Success后备份原文件
                 backup_file = f"{json_file}.backup"
                 os.rename(json_file, backup_file)
-                logger.info(f"数据迁移完成，原文件已备份为: {backup_file}")
+                logger.info(f"数据迁移Complete，原文件已备份为: {backup_file}")
             else:
-                logger.warning("数据迁移失败，保留原JSON文件")
+                logger.warning("数据迁移Failure，保留原JSON文件")
 
     def add_event(self, event: CalendarEvent) -> bool:
         """
@@ -307,24 +307,24 @@ class CalendarManager:
         self, start_date: str = None, end_date: str = None, category: str = None
     ) -> List[CalendarEvent]:
         """
-        获取事件列表.
+        Get事件列表.
         """
         try:
             events_data = self.db.get_events(start_date, end_date, category)
             return [CalendarEvent.from_dict(event_data) for event_data in events_data]
         except Exception as e:
-            logger.error(f"获取日程失败: {e}")
+            logger.error(f"Get日程Failure: {e}")
             return []
 
     def update_event(self, event_id: str, **kwargs) -> bool:
         """
-        更新事件.
+        Update事件.
         """
         return self.db.update_event(event_id, **kwargs)
 
     def delete_event(self, event_id: str) -> bool:
         """
-        删除事件.
+        Delete事件.
         """
         return self.db.delete_event(event_id)
 
@@ -336,13 +336,13 @@ class CalendarManager:
         delete_all: bool = False,
     ):
         """
-        批量删除事件.
+        批量Delete事件.
         """
         return self.db.delete_events_batch(start_date, end_date, category, delete_all)
 
     def get_categories(self) -> List[str]:
         """
-        获取所有分类.
+        Get所有分类.
         """
         return self.db.get_categories()
 
@@ -353,7 +353,7 @@ _calendar_manager = None
 
 def get_calendar_manager() -> CalendarManager:
     """
-    获取日程管理器单例.
+    Get日程管理器单例.
     """
     global _calendar_manager
     if _calendar_manager is None:

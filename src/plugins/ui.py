@@ -8,13 +8,13 @@ class UIPlugin(Plugin):
     """UI 插件 - 管理 CLI/GUI 显示"""
 
     name = "ui"
-    priority = 60  # UI 需要在其他插件完成后初始化
+    priority = 60  # UI 需要在其他插件Complete后Initialization
 
     # 设备状态文本映射
     STATE_TEXT_MAP = {
-        DeviceState.IDLE: "待命",
-        DeviceState.LISTENING: "聆听中...",
-        DeviceState.SPEAKING: "说话中...",
+        DeviceState.IDLE: "Idle",
+        DeviceState.LISTENING: "Listening...",
+        DeviceState.SPEAKING: "Speaking...",
     }
 
     def __init__(self, mode: Optional[str] = None) -> None:
@@ -27,7 +27,7 @@ class UIPlugin(Plugin):
 
     async def setup(self, app: Any) -> None:
         """
-        初始化 UI 插件.
+        Initialization UI 插件.
         """
         self.app = app
 
@@ -55,7 +55,7 @@ class UIPlugin(Plugin):
 
     async def start(self) -> None:
         """
-        启动 UI 显示.
+        Start UI 显示.
         """
         if not self.display:
             return
@@ -63,7 +63,7 @@ class UIPlugin(Plugin):
         # 绑定回调
         await self._setup_callbacks()
 
-        # 启动显示
+        # Start显示
         self.app.spawn(self.display.start(), name=f"ui:{self.mode}:start")
 
     async def _setup_callbacks(self) -> None:
@@ -104,12 +104,12 @@ class UIPlugin(Plugin):
 
         msg_type = message.get("type")
 
-        # tts/stt 都更新文本
+        # tts/stt 都Update文本
         if msg_type in ("tts", "stt"):
             if text := message.get("text"):
                 await self.display.update_text(text)
 
-        # llm 更新表情
+        # llm Update表情
         elif msg_type == "llm":
             if emotion := message.get("emotion"):
                 await self.display.update_emotion(emotion)
@@ -126,14 +126,14 @@ class UIPlugin(Plugin):
             self.is_first = False
             return
 
-        # 更新表情和状态
+        # Update表情和状态
         await self.display.update_emotion("neutral")
         if status_text := self.STATE_TEXT_MAP.get(state):
             await self.display.update_status(status_text, True)
 
     async def shutdown(self) -> None:
         """
-        清理 UI 资源，关闭窗口.
+        Cleanup UI 资源，Close窗口.
         """
         if self.display:
             await self.display.close()
@@ -143,7 +143,7 @@ class UIPlugin(Plugin):
 
     async def _send_text(self, text: str):
         """
-        发送文本到服务端.
+        Send Text到服务端.
         """
         if self.app.device_state == DeviceState.SPEAKING:
             audio_plugin = self.app.plugins.get_plugin("audio")
@@ -161,7 +161,7 @@ class UIPlugin(Plugin):
 
     async def _release(self):
         """
-        手动模式：释放停止录音.
+        手动模式：释放Stop录音.
         """
         await self.app.stop_listening_manual()
 
@@ -173,6 +173,6 @@ class UIPlugin(Plugin):
 
     async def _abort(self):
         """
-        中断对话.
+        Abort conversation.
         """
         await self.app.abort_speaking(AbortReason.USER_INTERRUPTION)

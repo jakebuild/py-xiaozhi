@@ -23,7 +23,7 @@ class ScreenshotCamera(BaseCamera):
     @classmethod
     def get_instance(cls):
         """
-        获取单例实例.
+        Get单例实例.
         """
         if cls._instance is None:
             with cls._lock:
@@ -33,7 +33,7 @@ class ScreenshotCamera(BaseCamera):
 
     def __init__(self):
         """
-        初始化截图摄像头.
+        Initialization截图摄像头.
         """
         super().__init__()
         logger.info("Initializing ScreenshotCamera")
@@ -91,7 +91,7 @@ class ScreenshotCamera(BaseCamera):
             display_id: 显示器ID，None=所有显示器，"main"=主屏，"secondary"=副屏，1,2,3...=具体显示器
 
         Returns:
-            成功返回True，失败返回False
+            Success返回True，Failure返回False
         """
         try:
             logger.info("Starting desktop screenshot capture...")
@@ -211,7 +211,7 @@ class ScreenshotCamera(BaseCamera):
             elif screenshot.mode not in ["RGB", "L"]:
                 screenshot = screenshot.convert("RGB")
 
-            # 保存为JPEG字节数据
+            # Save为JPEG字节数据
             byte_io = io.BytesIO()
             screenshot.save(byte_io, format="JPEG", quality=85)
 
@@ -289,7 +289,7 @@ class ScreenshotCamera(BaseCamera):
                 f"Capturing screenshot with Windows API, display_id: {display_id}"
             )
 
-            # 获取虚拟屏幕尺寸（包括所有显示器）
+            # Get虚拟屏幕尺寸（包括所有显示器）
             user32 = ctypes.windll.user32
             # SM_XVIRTUALSCREEN, SM_YVIRTUALSCREEN, SM_CXVIRTUALSCREEN, SM_CYVIRTUALSCREEN
             virtual_left = user32.GetSystemMetrics(76)  # SM_XVIRTUALSCREEN
@@ -321,7 +321,7 @@ class ScreenshotCamera(BaseCamera):
                 0x00CC0020,
             )
 
-            # 获取位图数据
+            # Get位图数据
             bmpinfo = ctypes.wintypes.BITMAPINFO()
             bmpinfo.bmiHeader.biSize = ctypes.sizeof(ctypes.wintypes.BITMAPINFOHEADER)
             bmpinfo.bmiHeader.biWidth = screensize[0]
@@ -334,12 +334,12 @@ class ScreenshotCamera(BaseCamera):
             buffer_size = screensize[0] * screensize[1] * 4
             buffer = ctypes.create_string_buffer(buffer_size)
 
-            # 获取像素数据
+            # Get像素数据
             ctypes.windll.gdi32.GetDIBits(
                 hcdc, hbmp, 0, screensize[1], buffer, ctypes.byref(bmpinfo), 0
             )
 
-            # 清理资源
+            # Cleanup资源
             ctypes.windll.gdi32.DeleteObject(hbmp)
             ctypes.windll.gdi32.DeleteDC(hcdc)
             user32.ReleaseDC(None, hdc)
@@ -404,7 +404,7 @@ class ScreenshotCamera(BaseCamera):
                         with open(temp_path, "rb") as f:
                             screenshot_data = f.read()
 
-                        # 清理临时文件
+                        # Cleanup临时文件
                         os.unlink(temp_path)
 
                         logger.debug(
@@ -412,7 +412,7 @@ class ScreenshotCamera(BaseCamera):
                         )
                         return screenshot_data
                     else:
-                        # 清理临时文件
+                        # Cleanup临时文件
                         if os.path.exists(temp_path):
                             os.unlink(temp_path)
 
@@ -443,7 +443,7 @@ class ScreenshotCamera(BaseCamera):
         try:
             logger.info(f"Analyzing screenshot with question: {question}")
 
-            # 获取现有的摄像头实例来复用分析能力
+            # Get现有的摄像头实例来复用分析能力
             from src.mcp.tools.camera import get_camera_instance
 
             camera_instance = get_camera_instance()
@@ -456,13 +456,13 @@ class ScreenshotCamera(BaseCamera):
                 # 使用现有的分析能力
                 result = camera_instance.analyze(question)
 
-                # 恢复原始数据
+                # Resume原始数据
                 camera_instance.set_jpeg_data(original_jpeg_data["buf"])
 
                 return result
 
             except Exception as e:
-                # 恢复原始数据
+                # Resume原始数据
                 camera_instance.set_jpeg_data(original_jpeg_data["buf"])
                 raise e
 
@@ -578,7 +578,7 @@ class ScreenshotCamera(BaseCamera):
                 logger.error("No displays found")
                 return None
 
-            # 清理临时文件
+            # Cleanup临时文件
             for display in displays:
                 try:
                     os.unlink(display["path"])

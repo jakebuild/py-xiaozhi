@@ -6,11 +6,11 @@ from colorlog import ColoredFormatter
 
 def setup_logging():
     """
-    配置日志系统.
+    Configuration日志系统.
     """
     from .resource_finder import get_project_root
 
-    # 使用resource_finder获取项目根目录并创建logs目录
+    # 使用resource_finderGet项目根目录并创建logs目录
     project_root = get_project_root()
     log_dir = project_root / "logs"
     log_dir.mkdir(exist_ok=True)
@@ -67,20 +67,20 @@ def setup_logging():
     root_logger.addHandler(console_handler)
     root_logger.addHandler(file_handler)
 
-    # 输出日志配置信息
-    logging.info("日志系统已初始化，日志文件: %s", log_file)
+    # 输出日志Configuration信息
+    logging.info("日志系统已Initialization，日志文件: %s", log_file)
 
     return log_file
 
 
 def get_logger(name):
-    """获取统一配置的日志记录器.
+    """Get统一Configuration的日志记录器.
 
     Args:
         name: 日志记录器名称，通常是模块名
 
     Returns:
-        logging.Logger: 配置好的日志记录器
+        logging.Logger: Configuration好的日志记录器
 
     示例:
         logger = get_logger(__name__)
@@ -92,7 +92,7 @@ def get_logger(name):
     # 添加一些辅助方法
     def log_error_with_exc(msg, *args, **kwargs):
         """
-        记录错误并自动包含异常堆栈.
+        记录Error并自动包含Exception堆栈.
         """
         kwargs["exc_info"] = True
         logger.error(msg, *args, **kwargs)

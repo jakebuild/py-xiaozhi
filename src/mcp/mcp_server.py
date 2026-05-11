@@ -91,7 +91,7 @@ class PropertyList:
 
     def __init__(self, properties: Optional[List[Property]] = None):
         """
-        初始化属性列表.
+        Initialization属性列表.
         """
         self.properties = properties or []
 
@@ -106,7 +106,7 @@ class PropertyList:
 
     def get_required(self) -> List[str]:
         """
-        获取必需的属性名称列表.
+        Get必需的属性名称列表.
         """
         return [p.name for p in self.properties if not p.has_default_value]
 
@@ -118,7 +118,7 @@ class PropertyList:
 
     def parse_arguments(self, arguments: Optional[Dict[str, Any]]) -> Dict[str, Any]:
         """
-        解析并验证参数.
+        Parse并验证参数.
         """
         result = {}
 
@@ -174,7 +174,7 @@ class McpTool:
         调用工具.
         """
         try:
-            # 解析参数
+            # Parse参数
             parsed_args = self.properties.parse_arguments(arguments)
 
             # 调用回调函数
@@ -212,7 +212,7 @@ class McpServer:
     @classmethod
     def get_instance(cls):
         """
-        获取单例实例.
+        Get单例实例.
         """
         if cls._instance is None:
             cls._instance = McpServer()
@@ -281,7 +281,7 @@ class McpServer:
         # 添加摄像头工具
         from src.mcp.tools.camera import take_photo
 
-        # 注册take_photo工具
+        # Registertake_photo工具
         properties = PropertyList([Property("question", PropertyType.STRING)])
         VISION_DESC = (
             "【拍照识图】当用户提到：拍照、拍张照、照张相、看一下、看看、帮我看、这是什么、识别、"
@@ -313,7 +313,7 @@ class McpServer:
         # 添加桌面截图工具
         from src.mcp.tools.screenshot import take_screenshot
 
-        # 注册take_screenshot工具
+        # Registertake_screenshot工具
         screenshot_properties = PropertyList(
             [
                 Property("question", PropertyType.STRING),
@@ -324,10 +324,10 @@ class McpServer:
             "【桌面截图/屏幕分析】当用户提到：截屏、截图、看看桌面、分析屏幕、桌面上有什么、"
             "屏幕截图、查看当前界面、分析当前页面、读取屏幕内容、屏幕OCR 时调用本工具。"
             "功能：①截取整个桌面画面；②屏幕内容识别与分析；③屏幕OCR文字提取；④界面元素分析；"
-            "⑤应用程序识别；⑥错误信息截图分析；⑦桌面状态检查；⑧多屏幕截图。"
+            "⑤应用程序识别；⑥Error信息截图分析；⑦桌面状态检查；⑧多屏幕截图。"
             "参数说明：{ question: '你想了解的关于桌面/屏幕的问题', display: '显示器选择(可选)' }；"
             "display可选值：'main'/'主屏'/'笔记本'(主显示器), 'secondary'/'副屏'/'外屏'(副显示器), 或留空(所有显示器)；"
-            "适用场景：桌面截图、屏幕分析、界面问题诊断、应用状态查看、错误截图分析等。"
+            "适用场景：桌面截图、屏幕分析、界面问题诊断、应用状态查看、Error截图分析等。"
             "注意：该工具会截取桌面，请确保用户同意截图操作。"
             "English: Desktop screenshot/screen analysis tool. Use when user mentions: screenshot, screen capture, "
             "desktop analysis, screen content, current interface, screen OCR, etc. "
@@ -353,12 +353,12 @@ class McpServer:
         bazi_manager = get_bazi_manager()
         bazi_manager.init_tools(self.add_tool, PropertyList, Property, PropertyType)
 
-        # 恢复原有工具
+        # Resume原有工具
         self.tools.extend(original_tools)
 
     async def parse_message(self, message: Union[str, Dict[str, Any]]):
         """
-        解析MCP消息.
+        ParseMCP消息.
         """
         try:
             if isinstance(message, str):
@@ -367,7 +367,7 @@ class McpServer:
                 data = message
 
             logger.info(
-                f"[MCP] 解析消息: {json.dumps(data, ensure_ascii=False, indent=2)}"
+                f"[MCP] Parse消息: {json.dumps(data, ensure_ascii=False, indent=2)}"
             )
 
             # 检查JSONRPC版本
@@ -412,13 +412,13 @@ class McpServer:
 
     async def _handle_initialize(self, id: int, params: Dict[str, Any]):
         """
-        处理初始化请求.
+        处理Initialization请求.
         """
-        # 解析capabilities
+        # Parsing capabilities
         capabilities = params.get("capabilities", {})
         await self._parse_capabilities(capabilities)
 
-        # 返回服务器信息
+        # Returning server info
         result = {
             "protocolVersion": "2024-11-05",
             "capabilities": {"tools": {}},
@@ -432,7 +432,7 @@ class McpServer:
 
     async def _handle_tools_list(self, id: int, params: Dict[str, Any]):
         """
-        处理工具列表请求.
+        Handling tool list request.
         """
         cursor = params.get("cursor", "")
         max_payload_size = 8000
@@ -443,7 +443,7 @@ class McpServer:
         next_cursor = ""
 
         for tool in self.tools:
-            # 如果还没找到起始位置，继续搜索
+            # 如果还没找到起始位置，继续Search
             if not found_cursor:
                 if tool.name == cursor:
                     found_cursor = True
@@ -469,18 +469,18 @@ class McpServer:
 
     async def _handle_tool_call(self, id: int, params: Dict[str, Any]):
         """
-        处理工具调用请求.
+        Handling tool call request.
         """
-        logger.info(f"[MCP] 收到工具调用请求! ID={id}, 参数={params}")
+        logger.info(f"[MCP] Received tool call request! ID={id}, 参数={params}")
 
         tool_name = params.get("name")
         if not tool_name:
             await self._reply_error(id, "Missing tool name")
             return
 
-        logger.info(f"[MCP] 尝试调用工具: {tool_name}")
+        logger.info(f"[MCP] Attempting to call tool: {tool_name}")
 
-        # 查找工具
+        # Finding tool
         tool = None
         for t in self.tools:
             if t.name == tool_name:
@@ -491,23 +491,23 @@ class McpServer:
             await self._reply_error(id, f"Unknown tool: {tool_name}")
             return
 
-        # 获取参数
+        # Getting parameters
         arguments = params.get("arguments", {})
 
-        logger.info(f"[MCP] 开始执行工具 {tool_name}, 参数: {arguments}")
+        logger.info(f"[MCP] Starting tool execution {tool_name}, 参数: {arguments}")
 
-        # 异步调用工具
+        # Calling tool asynchronously
         try:
             result = await tool.call(arguments)
-            logger.info(f"[MCP] 工具 {tool_name} 执行成功，结果: {result}")
+            logger.info(f"[MCP] 工具 {tool_name} 执行Success，结果: {result}")
             await self._reply_result(id, json.loads(result))
         except Exception as e:
-            logger.error(f"[MCP] 工具 {tool_name} 执行失败: {e}", exc_info=True)
+            logger.error(f"[MCP] 工具 {tool_name} 执行Failure: {e}", exc_info=True)
             await self._reply_error(id, str(e))
 
     async def _parse_capabilities(self, capabilities):
         """
-        解析capabilities.
+        Parsing capabilities.
         """
         vision = capabilities.get("vision", {})
         if vision and isinstance(vision, dict):
@@ -525,25 +525,25 @@ class McpServer:
 
     async def _reply_result(self, id: int, result: Any):
         """
-        发送成功响应.
+        发送Success响应.
         """
         payload = {"jsonrpc": "2.0", "id": id, "result": result}
 
         result_len = len(json.dumps(result))
-        logger.info(f"[MCP] 发送成功响应: ID={id}, 结果长度={result_len}")
+        logger.info(f"[MCP] Sending success response: ID={id}, 结果长度={result_len}")
 
         if self._send_callback:
             await self._send_callback(json.dumps(payload))
         else:
-            logger.error("[MCP] 发送回调未设置!")
+            logger.error("[MCP] Send callback not set!")
 
     async def _reply_error(self, id: int, message: str):
         """
-        发送错误响应.
+        发送Error响应.
         """
         payload = {"jsonrpc": "2.0", "id": id, "error": {"message": message}}
 
-        logger.error(f"[MCP] 发送错误响应: ID={id}, 错误={message}")
+        logger.error(f"[MCP] Sending error response: ID={id}, Error={message}")
 
         if self._send_callback:
             await self._send_callback(json.dumps(payload))

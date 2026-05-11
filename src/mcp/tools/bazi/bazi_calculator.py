@@ -100,7 +100,7 @@ class BaziCalculator:
         """
         from .professional_data import get_shensha
 
-        # 获取八字干支
+        # Get八字干支
         eight_char.year.heaven_stem.name
         eight_char.month.heaven_stem.name
         day_gan = eight_char.day.heaven_stem.name
@@ -192,7 +192,7 @@ class BaziCalculator:
         """
         构建大运对象.
         """
-        # 获取年柱阴阳性
+        # Get年柱阴阳性
         year_yin_yang = eight_char.year.heaven_stem.yin_yang
         month_gan = eight_char.month.heaven_stem.name
         month_zhi = eight_char.month.earth_branch.name
@@ -347,15 +347,15 @@ class BaziCalculator:
             analysis._professional_analysis = detailed_analysis
             analysis._detailed_fortune_text = detailed_text
         except Exception as e:
-            # 如果专业分析失败，记录错误但不影响基础功能
-            analysis._professional_analysis = {"error": f"专业分析失败: {e}"}
+            # 如果专业分析Failure，记录Error但不影响基础功能
+            analysis._professional_analysis = {"error": f"专业分析Failure: {e}"}
             analysis._detailed_fortune_text = f"专业分析模块暂时不可用: {e}"
 
         return analysis
 
     def _parse_lunar_datetime(self, lunar_datetime: str) -> LunarTime:
         """
-        解析农历时间字符串 - 支持多种格式.
+        Parse农历时间字符串 - 支持多种格式.
         """
         import re
         from datetime import datetime
@@ -374,7 +374,7 @@ class BaziCalculator:
             month = self._chinese_month_to_number(month_str)
             day = self._chinese_day_to_number(day_str)
 
-            # 解析时间部分
+            # Parse时间部分
             hour, minute, second = self._parse_time_part(time_str)
 
             return LunarTime(
@@ -410,7 +410,7 @@ class BaziCalculator:
                     continue
 
             if dt is None:
-                raise ValueError(f"无法解析农历时间格式: {lunar_datetime}")
+                raise ValueError(f"无法Parse农历时间格式: {lunar_datetime}")
 
         return LunarTime(
             year=dt.year,
@@ -448,7 +448,7 @@ class BaziCalculator:
                 second=solar.getSecond(),
             )
         except Exception as e:
-            raise ValueError(f"农历转公历失败: {e}")
+            raise ValueError(f"农历转公历Failure: {e}")
 
     def _calculate_fetal_origin(self, eight_char: EightChar) -> str:
         """
@@ -567,22 +567,22 @@ class BaziCalculator:
 
     def get_solar_times(self, bazi: str) -> List[str]:
         """
-        根据八字获取可能的公历时间.
+        根据八字Get可能的公历时间.
         """
         pillars = bazi.split(" ")
         if len(pillars) != 4:
-            raise ValueError("八字格式错误")
+            raise ValueError("八字格式Error")
 
         year_pillar, month_pillar, day_pillar, hour_pillar = pillars
 
-        # 解析八字柱
+        # Parse八字柱
         if (
             len(year_pillar) != 2
             or len(month_pillar) != 2
             or len(day_pillar) != 2
             or len(hour_pillar) != 2
         ):
-            raise ValueError("八字格式错误，每柱应为两个字符")
+            raise ValueError("八字格式Error，每柱应为两个字符")
 
         year_gan, year_zhi = year_pillar[0], year_pillar[1]
         month_gan, month_zhi = month_pillar[0], month_pillar[1]
@@ -591,7 +591,7 @@ class BaziCalculator:
 
         result_times = []
 
-        # 扩大搜索范围：1900-2100年，并优化搜索策略
+        # 扩大Search范围：1900-2100年，并优化Search策略
         for year in range(1900, 2100):
             try:
                 # 尝试匹配年柱
@@ -655,7 +655,7 @@ class BaziCalculator:
 
         from .professional_data import GAN_YINYANG
 
-        # 获取年柱干支阴阳
+        # Get年柱干支阴阳
         year_gan = eight_char.year.heaven_stem.name
         year_gan_yinyang = GAN_YINYANG.get(year_gan, 1)
 
@@ -679,7 +679,7 @@ class BaziCalculator:
                 next_jieqi = lunar.getNextJieQi()
 
                 if next_jieqi:
-                    # 获取下一个节气的公历时间
+                    # Get下一个节气的公历时间
                     next_jieqi_solar = next_jieqi.getSolar()
 
                     # 计算天数差
@@ -695,7 +695,7 @@ class BaziCalculator:
                 prev_jieqi = lunar.getPrevJieQi()
 
                 if prev_jieqi:
-                    # 获取上一个节气的公历时间
+                    # Get上一个节气的公历时间
                     prev_jieqi_solar = prev_jieqi.getSolar()
 
                     # 计算天数差
@@ -710,7 +710,7 @@ class BaziCalculator:
             return max(1, min(start_age, 10))
 
         except Exception:
-            # 如果节气计算失败，使用简化算法
+            # 如果节气计算Failure，使用简化算法
             if (gender == 1 and year_gan_yinyang == 1) or (
                 gender == 0 and year_gan_yinyang == -1
             ):
@@ -739,7 +739,7 @@ class BaziCalculator:
 
     def _parse_time_part(self, time_str: str) -> tuple:
         """
-        解析时间部分，返回(hour, minute, second)
+        Parse时间部分，返回(hour, minute, second)
         """
         if not time_str:
             return (0, 0, 0)
@@ -1024,7 +1024,7 @@ class BaziCalculator:
 
     def _get_zodiac_by_lunar_year(self, solar_time: SolarTime) -> str:
         """
-        根据农历年份获取生肖（以春节为界，不是立春）
+        根据农历年份Get生肖（以春节为界，不是立春）
         """
         try:
             from lunar_python import Solar
@@ -1039,11 +1039,11 @@ class BaziCalculator:
             )
             lunar = solar.getLunar()
 
-            # 使用lunar-python直接获取农历生肖（以春节为界）
+            # 使用lunar-python直接Get农历生肖（以春节为界）
             return lunar.getYearShengXiao()
         except Exception as e:
-            # 如果失败，使用八字年柱的生肖作为备选
-            print(f"获取农历生肖失败，使用八字年柱生肖: {e}")
+            # 如果Failure，使用八字年柱的生肖作为备选
+            print(f"Get农历生肖Failure，使用八字年柱生肖: {e}")
             eight_char = self.engine.build_eight_char(solar_time)
             return eight_char.year.earth_branch.zodiac
 
@@ -1054,7 +1054,7 @@ _bazi_calculator = None
 
 def get_bazi_calculator() -> BaziCalculator:
     """
-    获取八字计算器单例.
+    Get八字计算器单例.
     """
     global _bazi_calculator
     if _bazi_calculator is None:

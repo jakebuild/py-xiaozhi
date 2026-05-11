@@ -34,7 +34,7 @@ def downmix_to_mono(
 ) -> np.ndarray | bytes:
     """将任意格式的音频下混为单声道.
 
-    支持两种输入:
+    支持两种Input:
     1. np.ndarray: 形状 (N,) 或 (N, C) 的 PCM 数组
     2. bytes: PCM 字节流 (需指定 dtype 和 in_channels)
 
@@ -56,7 +56,7 @@ def downmix_to_mono(
         >>> stereo_bytes = b'...'  # 立体声 PCM 数据
         >>> mono_bytes = downmix_to_mono(stereo_bytes, dtype=np.int16, in_channels=2)
     """
-    # bytes 输入: 转换 -> 处理 -> 转回 bytes
+    # bytes Input: 转换 -> 处理 -> 转回 bytes
     if isinstance(pcm, bytes):
         if in_channels is None:
             raise ValueError("bytes 输入必须指定 in_channels 参数")
@@ -64,7 +64,7 @@ def downmix_to_mono(
         mono_arr = downmix_to_mono(arr, keepdims=False)  # bytes 输出不需要 keepdims
         return mono_arr.tobytes()
 
-    # ndarray 输入: 直接处理
+    # ndarray Input: 直接处理
     x = np.asarray(pcm)
     if x.ndim == 1:
         return x[:, None] if keepdims else x
@@ -89,15 +89,15 @@ def downmix_to_mono(
 def safe_queue_put(
     queue: asyncio.Queue, item: Any, replace_oldest: bool = True
 ) -> bool:
-    """安全地将项目放入队列，队列满时可选择丢弃最旧数据.
+    """安全地将项目放入队列，队列满时可选择Discarding最旧数据.
 
     Args:
         queue: asyncio.Queue 对象
         item: 要入队的数据
-        replace_oldest: True=队列满时丢弃最旧数据并放入新数据, False=直接丢弃新数据
+        replace_oldest: True=队列满时Discarding最旧数据并放入新数据, False=直接Discarding新数据
 
     Returns:
-        True=成功入队, False=队列满且未入队
+        True=Success入队, False=队列满且未入队
     """
     try:
         queue.put_nowait(item)
@@ -105,7 +105,7 @@ def safe_queue_put(
     except asyncio.QueueFull:
         if replace_oldest:
             try:
-                queue.get_nowait()  # 丢弃最旧的
+                queue.get_nowait()  # Discarding最旧的
                 queue.put_nowait(item)  # 放入新数据
                 return True
             except asyncio.QueueEmpty:
@@ -165,7 +165,7 @@ def select_audio_device(
     else:
         host_order = ["alsa", "jack", "oss"]  # 多数 Linux 的 PortAudio 只有 ALSA
 
-    # Linux 才默认启用 name hints；其它平台默认关闭（可通过参数打开）
+    # Linux 才默认启用 name hints；其它平台默认Close（可通过参数打开）
     if allow_name_hints is None:
         allow_name_hints = system == "linux"
 

@@ -30,7 +30,7 @@ class TimerService:
     async def start_countdown(
         self, command: str, delay: int = None, description: str = ""
     ) -> Dict[str, Any]:
-        """启动一个倒计时任务.
+        """Start一个倒计时任务.
 
         Args:
             command: 要执行的MCP工具调用 (JSON格式字符串，包含name和arguments字段)
@@ -61,13 +61,13 @@ class TimerService:
         try:
             json.loads(command)
         except json.JSONDecodeError:
-            logger.error(f"启动倒计时失败：命令格式错误，无法解析JSON: {command}")
+            logger.error(f"Start倒计时Failure：命令格式Error，无法ParseJSON: {command}")
             return {
                 "success": False,
-                "message": f"命令格式错误，无法解析JSON: {command}",
+                "message": f"命令格式Error，无法ParseJSON: {command}",
             }
 
-        # 获取当前事件循环
+        # Get当前事件循环
         loop = asyncio.get_running_loop()
 
         async with self._lock:
@@ -89,11 +89,11 @@ class TimerService:
 
             self._timers[timer_id] = timer_task
 
-        logger.info(f"启动倒计时 {timer_id}，将在 {delay} 秒后执行命令: {command}")
+        logger.info(f"Start倒计时 {timer_id}，将在 {delay} 秒后执行命令: {command}")
 
         return {
             "success": True,
-            "message": f"倒计时 {timer_id} 已启动，将在 {delay} 秒后执行",
+            "message": f"倒计时 {timer_id} Started，将在 {delay} 秒后执行",
             "timer_id": timer_id,
             "delay": delay,
             "command": command,
@@ -116,7 +116,7 @@ class TimerService:
         try:
             timer_id = int(timer_id)
         except (ValueError, TypeError):
-            logger.error(f"取消倒计时失败：无效的 timer_id {timer_id}")
+            logger.error(f"取消倒计时Failure：无效的 timer_id {timer_id}")
             return {"success": False, "message": f"无效的 timer_id: {timer_id}"}
 
         async with self._lock:
@@ -125,7 +125,7 @@ class TimerService:
                 if timer_task.task:
                     timer_task.task.cancel()
 
-                logger.info(f"倒计时 {timer_id} 已成功取消")
+                logger.info(f"倒计时 {timer_id} 已Success取消")
                 return {
                     "success": True,
                     "message": f"倒计时 {timer_id} 已取消",
@@ -133,7 +133,7 @@ class TimerService:
                     "cancelled_at": datetime.now().isoformat(),
                 }
             else:
-                logger.warning(f"尝试取消不存在或已完成的倒计时 {timer_id}")
+                logger.warning(f"尝试取消不存在或已Complete的倒计时 {timer_id}")
                 return {
                     "success": False,
                     "message": f"找不到ID为 {timer_id} 的活动倒计时",
@@ -141,7 +141,7 @@ class TimerService:
                 }
 
     async def get_active_timers(self) -> Dict[str, Any]:
-        """获取所有活动的倒计时任务状态.
+        """Get所有活动的倒计时任务状态.
 
         Returns:
             Dict[str, Any]: 活动计时器列表
@@ -175,18 +175,18 @@ class TimerService:
 
     async def cleanup_timer(self, timer_id: int):
         """
-        从管理器中移除已完成的计时器.
+        从管理器中移除已Complete的计时器.
         """
         async with self._lock:
             if timer_id in self._timers:
                 del self._timers[timer_id]
-                logger.debug(f"已清理完成的倒计时 {timer_id}")
+                logger.debug(f"已CleanupComplete的倒计时 {timer_id}")
 
     async def cleanup_all(self):
         """
-        清理所有倒计时任务（应用关闭时调用）
+        Cleanup所有倒计时任务（应用Close时调用）
         """
-        logger.info("正在清理所有倒计时任务...")
+        logger.info("Cleaning up所有倒计时任务...")
         async with self._lock:
             active_timer_ids = list(self._timers.keys())
             for timer_id in active_timer_ids:
@@ -195,7 +195,7 @@ class TimerService:
                     if timer_task.task:
                         timer_task.task.cancel()
                     logger.info(f"已取消倒计时任务 {timer_id}")
-        logger.info("倒计时任务清理完成")
+        logger.info("倒计时任务CleanupComplete")
 
 
 class TimerTask:
@@ -236,7 +236,7 @@ class TimerTask:
         except Exception as e:
             logger.error(f"倒计时 {self.timer_id} 执行过程中出错: {e}", exc_info=True)
         finally:
-            # 清理自己
+            # Cleanup自己
             await self.service.cleanup_timer(self.timer_id)
 
     async def _execute_command(self):
@@ -246,22 +246,22 @@ class TimerTask:
         logger.info(f"倒计时 {self.timer_id} 结束，准备执行MCP工具: {self.command}")
 
         try:
-            # 解析MCP工具调用命令
+            # ParseMCP工具调用命令
             command_dict = json.loads(self.command)
 
             # 验证命令格式（MCP工具调用格式）
             if "name" not in command_dict or "arguments" not in command_dict:
-                raise ValueError("MCP命令格式错误，必须包含 'name' 和 'arguments' 字段")
+                raise ValueError("MCP命令格式Error，必须包含 'name' 和 'arguments' 字段")
 
             tool_name = command_dict["name"]
             arguments = command_dict["arguments"]
 
-            # 获取MCP服务器并执行工具
+            # GetMCP服务器并执行工具
             from src.mcp.mcp_server import McpServer
 
             mcp_server = McpServer.get_instance()
 
-            # 查找工具
+            # Finding tool
             tool = None
             for t in mcp_server.tools:
                 if t.name == tool_name:
@@ -274,22 +274,22 @@ class TimerTask:
             # 执行MCP工具
             result = await tool.call(arguments)
 
-            # 解析结果
+            # Parse结果
             result_data = json.loads(result)
             is_success = not result_data.get("isError", False)
 
             if is_success:
                 logger.info(
-                    f"倒计时 {self.timer_id} 执行MCP工具成功，工具: {tool_name}"
+                    f"倒计时 {self.timer_id} 执行MCP工具Success，工具: {tool_name}"
                 )
                 await self._notify_execution_result(True, f"已执行 {tool_name}")
             else:
-                error_text = result_data.get("content", [{}])[0].get("text", "未知错误")
-                logger.error(f"倒计时 {self.timer_id} 执行MCP工具失败: {error_text}")
+                error_text = result_data.get("content", [{}])[0].get("text", "未知Error")
+                logger.error(f"倒计时 {self.timer_id} 执行MCP工具Failure: {error_text}")
                 await self._notify_execution_result(False, error_text)
 
         except json.JSONDecodeError:
-            error_msg = f"倒计时 {self.timer_id}: MCP命令格式错误，无法解析JSON"
+            error_msg = f"倒计时 {self.timer_id}: MCP命令格式Error，无法ParseJSON"
             logger.error(error_msg)
             await self._notify_execution_result(False, error_msg)
         except Exception as e:
@@ -306,22 +306,22 @@ class TimerTask:
 
             app = Application.get_instance()
             if success:
-                message = f"倒计时 {self.timer_id} 执行完成"
+                message = f"倒计时 {self.timer_id} 执行Complete"
                 if self.description:
-                    message = f"{self.description}执行完成"
+                    message = f"{self.description}执行Complete"
             else:
-                message = f"倒计时 {self.timer_id} 执行失败"
+                message = f"倒计时 {self.timer_id} 执行Failure"
                 if self.description:
-                    message = f"{self.description}执行失败"
+                    message = f"{self.description}执行Failure"
 
             print("倒计时：", message)
             await app._send_text_tts(message)
         except Exception as e:
-            logger.warning(f"通知倒计时执行结果失败: {e}")
+            logger.warning(f"通知倒计时执行结果Failure: {e}")
 
     def get_remaining_time(self) -> float:
         """
-        获取剩余时间（秒）
+        Get剩余时间（秒）
         """
         now = datetime.now()
         remaining = (self.execution_time - now).total_seconds()
@@ -329,7 +329,7 @@ class TimerTask:
 
     def get_progress(self) -> float:
         """
-        获取进度（0-1之间的浮点数）
+        Get进度（0-1之间的浮点数）
         """
         elapsed = (datetime.now() - self.start_time).total_seconds()
         return min(1.0, elapsed / self.delay)
@@ -341,7 +341,7 @@ _timer_service = None
 
 def get_timer_service() -> TimerService:
     """
-    获取倒计时器服务单例.
+    Get倒计时器服务单例.
     """
     global _timer_service
     if _timer_service is None:

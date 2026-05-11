@@ -29,35 +29,35 @@ class BaseDisplay(ABC):
     @abstractmethod
     async def update_button_status(self, text: str):
         """
-        更新按钮状态.
+        Update按钮状态.
         """
 
     @abstractmethod
     async def update_status(self, status: str, connected: bool):
         """
-        更新状态文本.
+        Update状态文本.
         """
 
     @abstractmethod
     async def update_text(self, text: str):
         """
-        更新TTS文本.
+        UpdateTTS文本.
         """
 
     @abstractmethod
     async def update_emotion(self, emotion_name: str):
         """
-        更新表情.
+        Update表情.
         """
 
     @abstractmethod
     async def start(self):
         """
-        启动显示.
+        Start显示.
         """
 
     @abstractmethod
     async def close(self):
         """
-        关闭显示.
+        Close显示.
         """

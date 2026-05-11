@@ -19,7 +19,7 @@ from src.views.settings.components.wake_word import WakeWordWidget
 
 class SettingsWindow(QDialog):
     """
-    参数配置窗口.
+    参数Configuration窗口.
     """
 
     def __init__(self, parent=None):
@@ -37,7 +37,7 @@ class SettingsWindow(QDialog):
         # UI控件
         self.ui_controls = {}
 
-        # 初始化UI
+        # InitializationUI
         self._setup_ui()
         self._connect_events()
 
@@ -51,14 +51,14 @@ class SettingsWindow(QDialog):
             ui_path = Path(__file__).parent / "settings_window.ui"
             uic.loadUi(str(ui_path), self)
 
-            # 获取UI控件的引用
+            # GetUI控件的引用
             self._get_ui_controls()
 
             # 添加各个组件选项卡
             self._add_component_tabs()
 
         except Exception as e:
-            self.logger.error(f"设置UI失败: {e}", exc_info=True)
+            self.logger.error(f"设置UIFailure: {e}", exc_info=True)
             raise
 
     def _add_component_tabs(self):
@@ -66,7 +66,7 @@ class SettingsWindow(QDialog):
         添加各个组件选项卡.
         """
         try:
-            # 获取TabWidget
+            # GetTabWidget
             tab_widget = self.findChild(QTabWidget, "tabWidget")
             if not tab_widget:
                 self.logger.error("未找到TabWidget控件")
@@ -100,10 +100,10 @@ class SettingsWindow(QDialog):
             tab_widget.addTab(self.shortcuts_tab, "快捷键")
             self.shortcuts_tab.settings_changed.connect(self._on_settings_changed)
 
-            self.logger.debug("成功添加所有组件选项卡")
+            self.logger.debug("Success添加所有组件选项卡")
 
         except Exception as e:
-            self.logger.error(f"添加组件选项卡失败: {e}", exc_info=True)
+            self.logger.error(f"添加组件选项卡Failure: {e}", exc_info=True)
 
     def _on_settings_changed(self):
         """
@@ -113,9 +113,9 @@ class SettingsWindow(QDialog):
 
     def _get_ui_controls(self):
         """
-        获取UI控件引用.
+        GetUI控件引用.
         """
-        # 只需要获取主要的按钮控件
+        # 只需要Get主要的按钮控件
         self.ui_controls.update(
             {
                 "save_btn": self.findChild(QPushButton, "save_btn"),
@@ -126,7 +126,7 @@ class SettingsWindow(QDialog):
 
     def _connect_events(self):
         """
-        连接事件处理.
+        Connect事件处理.
         """
         if self.ui_controls["save_btn"]:
             self.ui_controls["save_btn"].clicked.connect(self._on_save_clicked)
@@ -137,24 +137,24 @@ class SettingsWindow(QDialog):
         if self.ui_controls["reset_btn"]:
             self.ui_controls["reset_btn"].clicked.connect(self._on_reset_clicked)
 
-    # 配置加载现在由各个组件自行处理，不需要在主窗口中处理
+    # ConfigurationLoad现在由各个组件自行处理，不需要在主窗口中处理
 
     # 移除了不再需要的控件操作方法，现在由各个组件处理
 
     def _on_save_clicked(self):
         """
-        保存按钮点击事件.
+        Save按钮点击事件.
         """
         try:
-            # 收集所有配置数据
+            # 收集所有Configuration数据
             success = self._save_all_config()
 
             if success:
-                # 显示保存成功并提示重启
+                # 显示SaveSuccess并提示Restart
                 reply = QMessageBox.question(
                     self,
-                    "配置保存成功",
-                    "配置已保存成功！\n\n为了使配置生效，建议重启软件。\n是否现在重启？",
+                    "ConfigurationSaveSuccess",
+                    "Configuration已SaveSuccess！\n\n为了使Configuration生效，建议Restart软件。\n是否现在Restart？",
                     QMessageBox.Yes | QMessageBox.No,
                     QMessageBox.Yes,
                 )
@@ -164,56 +164,56 @@ class SettingsWindow(QDialog):
                 else:
                     self.accept()
             else:
-                QMessageBox.warning(self, "错误", "配置保存失败，请检查输入的值。")
+                QMessageBox.warning(self, "Error", "ConfigurationSaveFailure，请检查输入的值。")
 
         except Exception as e:
-            self.logger.error(f"保存配置失败: {e}", exc_info=True)
-            QMessageBox.critical(self, "错误", f"保存配置时发生错误: {str(e)}")
+            self.logger.error(f"SaveConfigurationFailure: {e}", exc_info=True)
+            QMessageBox.critical(self, "Error", f"SaveConfiguration时发生Error: {str(e)}")
 
     def _save_all_config(self) -> bool:
         """
-        保存所有配置.
+        Save所有Configuration.
         """
         try:
-            # 从各个组件收集配置数据
+            # 从各个组件收集Configuration数据
             all_config_data = {}
 
-            # 系统选项配置
+            # 系统选项Configuration
             if self.system_options_tab:
                 system_config = self.system_options_tab.get_config_data()
                 all_config_data.update(system_config)
 
-            # 唤醒词配置
+            # 唤醒词Configuration
             if self.wake_word_tab:
                 wake_word_config = self.wake_word_tab.get_config_data()
                 all_config_data.update(wake_word_config)
-                # 保存唤醒词文件
+                # Save唤醒词文件
                 self.wake_word_tab.save_keywords()
 
-            # 摄像头配置
+            # 摄像头Configuration
             if self.camera_tab:
                 camera_config = self.camera_tab.get_config_data()
                 all_config_data.update(camera_config)
 
-            # 音频设备配置
+            # 音频设备Configuration
             if self.audio_tab:
                 audio_config = self.audio_tab.get_config_data()
                 all_config_data.update(audio_config)
 
-            # 快捷键配置
+            # 快捷键Configuration
             if self.shortcuts_tab:
-                # 快捷键组件有自己的保存方法
+                # 快捷键组件有自己的Save方法
                 self.shortcuts_tab.apply_settings()
 
-            # 批量更新配置
+            # 批量UpdateConfiguration
             for config_path, value in all_config_data.items():
                 self.config_manager.update_config(config_path, value)
 
-            self.logger.info("配置保存成功")
+            self.logger.info("ConfigurationSaveSuccess")
             return True
 
         except Exception as e:
-            self.logger.error(f"保存配置时出错: {e}", exc_info=True)
+            self.logger.error(f"SaveConfiguration时出错: {e}", exc_info=True)
             return False
 
     def _on_reset_clicked(self):
@@ -223,7 +223,7 @@ class SettingsWindow(QDialog):
         reply = QMessageBox.question(
             self,
             "确认重置",
-            "确定要重置所有配置为默认值吗？\n这将清除当前的所有设置。",
+            "确定要重置所有Configuration为默认值吗？\n这将清除当前的所有设置。",
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No,
         )
@@ -252,51 +252,51 @@ class SettingsWindow(QDialog):
             if self.shortcuts_tab:
                 self.shortcuts_tab.reset_to_defaults()
 
-            self.logger.info("所有组件配置已重置为默认值")
+            self.logger.info("所有组件Configuration已重置为默认值")
 
         except Exception as e:
-            self.logger.error(f"重置配置失败: {e}", exc_info=True)
-            QMessageBox.critical(self, "错误", f"重置配置时发生错误: {str(e)}")
+            self.logger.error(f"重置ConfigurationFailure: {e}", exc_info=True)
+            QMessageBox.critical(self, "Error", f"重置Configuration时发生Error: {str(e)}")
 
     def _restart_application(self):
         """
-        重启应用程序.
+        Restart应用程序.
         """
         try:
-            self.logger.info("用户选择重启应用程序")
+            self.logger.info("用户选择Restart应用程序")
 
-            # 关闭设置窗口
+            # Close设置窗口
             self.accept()
 
-            # 直接重启程序
+            # 直接Restart程序
             self._direct_restart()
 
         except Exception as e:
-            self.logger.error(f"重启应用程序失败: {e}", exc_info=True)
+            self.logger.error(f"Restart应用程序Failure: {e}", exc_info=True)
             QMessageBox.warning(
-                self, "重启失败", "自动重启失败，请手动重启软件以使配置生效。"
+                self, "RestartFailure", "自动RestartFailure，请手动Restart软件以使Configuration生效。"
             )
 
     def _direct_restart(self):
         """
-        直接重启程序.
+        直接Restart程序.
         """
         try:
             import sys
 
             from PyQt5.QtWidgets import QApplication
 
-            # 获取当前执行的程序路径和参数
+            # Get当前执行的程序路径和参数
             python = sys.executable
             script = sys.argv[0]
             args = sys.argv[1:]
 
-            self.logger.info(f"重启命令: {python} {script} {' '.join(args)}")
+            self.logger.info(f"Restart命令: {python} {script} {' '.join(args)}")
 
-            # 关闭当前应用
+            # Close当前应用
             QApplication.quit()
 
-            # 启动新实例
+            # Start新实例
             if getattr(sys, "frozen", False):
                 # 打包环境
                 os.execv(sys.executable, [sys.executable] + args)
@@ -305,11 +305,11 @@ class SettingsWindow(QDialog):
                 os.execv(python, [python, script] + args)
 
         except Exception as e:
-            self.logger.error(f"直接重启失败: {e}", exc_info=True)
+            self.logger.error(f"直接RestartFailure: {e}", exc_info=True)
 
     def closeEvent(self, event):
         """
-        窗口关闭事件.
+        窗口Close事件.
         """
-        self.logger.debug("设置窗口已关闭")
+        self.logger.debug("设置窗口Closed")
         super().closeEvent(event)

@@ -56,7 +56,7 @@ def _warm_up_audio_device():
         _audio_device_warmed_up = True
         logger.info("已预热音频设备")
     except Exception as e:
-        logger.warning(f"预热音频设备失败: {e}")
+        logger.warning(f"预热音频设备Failure: {e}")
 
 
 def _audio_queue_worker():
@@ -75,7 +75,7 @@ def _audio_queue_worker():
                 success = _play_system_tts(text)
 
                 if not success:
-                    logger.warning("系统TTS失败，尝试备用方案")
+                    logger.warning("系统TTSFailure，尝试备用方案")
                     import os
 
                     if os.name == "nt":
@@ -92,7 +92,7 @@ def _audio_queue_worker():
         except Exception as e:
             logger.error(f"音频队列工作线程出错: {e}")
 
-    logger.info("音频队列工作线程已停止")
+    logger.info("音频队列工作线程已Stop")
 
 
 def _ensure_audio_worker():
@@ -106,14 +106,14 @@ def _ensure_audio_worker():
         _audio_worker_running = True
         _audio_worker_thread = threading.Thread(target=_audio_queue_worker, daemon=True)
         _audio_worker_thread.start()
-        logger.info("音频队列工作线程已启动")
+        logger.info("音频队列工作线程Started")
 
 
 def open_url(url: str) -> bool:
     try:
         success = webbrowser.open(url)
         if success:
-            logger.info(f"已成功打开网页: {url}")
+            logger.info(f"已Success打开网页: {url}")
         else:
             logger.warning(f"无法打开网页: {url}")
         return success
@@ -186,7 +186,7 @@ def _play_linux_tts(text: str) -> bool:
             time.sleep(0.5)
             return result.returncode == 0
         except subprocess.TimeoutExpired:
-            logger.warning("espeak播放超时")
+            logger.warning("espeak播放Timeout")
             return False
         except Exception as e:
             logger.error(f"espeak播放出错: {e}")
@@ -211,7 +211,7 @@ def _play_macos_tts(text: str) -> bool:
             time.sleep(0.5)
             return result.returncode == 0
         except subprocess.TimeoutExpired:
-            logger.warning("say命令播放超时")
+            logger.warning("say命令播放Timeout")
             return False
         except Exception as e:
             logger.error(f"say命令播放出错: {e}")

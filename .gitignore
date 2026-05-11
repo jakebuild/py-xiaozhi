@@ -1,5 +1,8 @@
 /logs
 /config
+crash_log*.txt
+qt_crash_log.txt
+*.log
 
 .venv
 **/__pycache__/
@@ -12,6 +15,9 @@ cache/
 
 
 /models
+*.tar.bz2
+*.zip
+*.tar.gz
 
 # 打包相关
 /build
@@ -30,3 +36,6 @@ cache/
 xiaozhi.spec
 
 /installer
+# Environment
+.env
+.env.local

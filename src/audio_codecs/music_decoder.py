@@ -58,7 +58,7 @@ class MusicDecoder:
                     "-ac",
                     str(self.channels),  # 声道数
                     "-loglevel",
-                    "error",  # 只输出错误信息
+                    "error",  # 只输出Error信息
                     "-",  # 输出到 stdout
                 ]
             )
@@ -67,7 +67,7 @@ class MusicDecoder:
                 *cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
 
-            # 启动读取任务
+            # Start读取任务
             self._decode_task = asyncio.create_task(self._read_pcm_stream(output_queue))
 
             position_info = f" from {start_position:.1f}s" if start_position > 0 else ""
@@ -78,7 +78,7 @@ class MusicDecoder:
             return True
 
         except Exception as e:
-            logger.error(f"启动音频解码失败: {e}")
+            logger.error(f"Start音频解码Failure: {e}")
             return False
 
     async def _read_pcm_stream(self, output_queue: asyncio.Queue):
@@ -103,10 +103,10 @@ class MusicDecoder:
                 chunk = await self._process.stdout.read(frame_size_bytes)
 
                 if not chunk:
-                    # EOF - 文件解码完成
+                    # EOF - 文件解码Complete
                     duration_decoded = frame_count * frame_duration_ms / 1000
                     logger.info(
-                        f"音频解码完成，共 {frame_count} 帧，时长约 {duration_decoded:.1f}秒"
+                        f"音频解码Complete，共 {frame_count} 帧，时长约 {duration_decoded:.1f}秒"
                     )
 
                     if self._process and self._process.returncode is not None:
@@ -114,7 +114,7 @@ class MusicDecoder:
                             stderr_output = await self._process.stderr.read()
                             if stderr_output:
                                 logger.error(
-                                    f"FFmpeg 错误输出: {stderr_output.decode('utf-8', errors='ignore')}"
+                                    f"FFmpeg Error输出: {stderr_output.decode('utf-8', errors='ignore')}"
                                 )
                         except Exception:
                             pass
@@ -160,17 +160,17 @@ class MusicDecoder:
                 if target_sleep > 0:
                     await asyncio.sleep(target_sleep)
 
-                # 写入队列（带超时保护）
+                # 写入队列（带Timeout保护）
                 try:
                     await asyncio.wait_for(output_queue.put(audio_array), timeout=5.0)
                 except asyncio.TimeoutError:
-                    logger.warning(f"音频队列写入超时，跳过帧 {frame_count}")
+                    logger.warning(f"音频队列写入Timeout，跳过帧 {frame_count}")
                     continue
 
         except asyncio.CancelledError:
             logger.debug("解码任务被取消")
         except Exception as e:
-            logger.error(f"读取 PCM 流失败: {e}")
+            logger.error(f"读取 PCM 流Failure: {e}")
         finally:
             if eof_reached:
                 try:
@@ -183,7 +183,7 @@ class MusicDecoder:
             return
 
         self._stopped = True
-        logger.debug("停止音频解码器")
+        logger.debug("Stop音频解码器")
 
         if self._decode_task and not self._decode_task.done():
             self._decode_task.cancel()
@@ -206,7 +206,7 @@ class MusicDecoder:
                 except Exception:
                     pass
             except Exception as e:
-                logger.debug(f"终止 FFmpeg 进程失败: {e}")
+                logger.debug(f"终止 FFmpeg 进程Failure: {e}")
 
     def is_running(self) -> bool:
         return (

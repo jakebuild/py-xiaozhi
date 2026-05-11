@@ -59,7 +59,7 @@ def is_official_server(ws_addr: str) -> bool:
 
 
 def get_frame_duration() -> int:
-    """获取设备的帧长度.
+    """Get设备的帧长度.
 
     返回:
         int: 帧长度(毫秒)
@@ -83,16 +83,16 @@ def get_frame_duration() -> int:
             return 20
 
     except Exception:
-        # 如果获取失败，返回默认值20ms（适合大多数现代设备）
+        # 如果GetFailure，返回默认值20ms（适合大多数现代设备）
         return 20
 
 
 class AudioConfig:
     """
-    音频配置类.
+    音频Configuration类.
     """
 
-    # 固定配置
+    # 固定Configuration
     INPUT_SAMPLE_RATE = 16000  # 输入采样率16kHz
     # 输出采样率：官方服务器使用24kHz，其他使用16kHz
     _ota_url = config.get_config("SYSTEM_OPTIONS.NETWORK.OTA_VERSION_URL")
@@ -103,7 +103,7 @@ class AudioConfig:
     MAX_INPUT_CHANNELS = 2  # 最多使用2个输入声道（立体声）
     MAX_OUTPUT_CHANNELS = 2  # 最多使用2个输出声道（立体声）
 
-    # 动态获取帧长度
+    # 动态Get帧长度
     FRAME_DURATION = get_frame_duration()
 
     # 根据不同采样率计算帧大小

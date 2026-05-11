@@ -24,12 +24,12 @@ class VLCamera(BaseCamera):
 
     def __init__(self):
         """
-        初始化智普AI摄像头.
+        Initialization智普AI摄像头.
         """
         super().__init__()
         config = ConfigManager.get_instance()
 
-        # 初始化OpenAI客户端
+        # InitializationOpenAI客户端
         self.client = OpenAI(
             api_key=config.get_config("CAMERA.VLapi_key"),
             base_url=config.get_config(
@@ -43,7 +43,7 @@ class VLCamera(BaseCamera):
     @classmethod
     def get_instance(cls):
         """
-        获取单例实例.
+        Get单例实例.
         """
         if cls._instance is None:
             with cls._lock:
@@ -76,7 +76,7 @@ class VLCamera(BaseCamera):
                 logger.error("Failed to capture image")
                 return False
 
-            # 获取原始图像尺寸
+            # Get原始图像尺寸
             height, width = frame.shape[:2]
 
             # 计算缩放比例，使最长边为320
@@ -98,7 +98,7 @@ class VLCamera(BaseCamera):
                 logger.error("Failed to encode image to JPEG")
                 return False
 
-            # 保存字节数据
+            # Save字节数据
             self.set_jpeg_data(jpeg_data.tobytes())
             logger.info(
                 f"Image captured successfully (size: {self.jpeg_data['len']} bytes)"

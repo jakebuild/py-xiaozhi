@@ -25,7 +25,7 @@ class CliDisplay(BaseDisplay):
         self._dash_text = ""
         self._dash_emotion = ""
         # 布局：仅两块区域（显示区 + 输入区）
-        # 预留两行输入空间（分隔线 + 输入行），并额外多留一行用于中文输入溢出的清理
+        # 预留两行输入空间（分隔线 + 输入行），并额外多留一行用于中文输入溢出的Cleanup
         self._input_area_lines = 3
         self._dashboard_lines = 8  # 默认显示区最少行数（会按终端高度动态调整）
 
@@ -73,7 +73,7 @@ class CliDisplay(BaseDisplay):
 
     async def update_button_status(self, text: str):
         """
-        更新按钮状态.
+        Update按钮状态.
         """
         # 简化：按钮状态仅在仪表盘文本中展示
         self._dash_text = text
@@ -81,7 +81,7 @@ class CliDisplay(BaseDisplay):
 
     async def update_status(self, status: str, connected: bool):
         """
-        更新状态（仅更新仪表盘，不追加新行）。
+        Update状态（仅Update仪表盘，不追加新行）。
         """
         self._dash_status = status
         self._dash_connected = bool(connected)
@@ -89,7 +89,7 @@ class CliDisplay(BaseDisplay):
 
     async def update_text(self, text: str):
         """
-        更新文本（仅更新仪表盘，不追加新行）。
+        Update文本（仅Update仪表盘，不追加新行）。
         """
         if text and text.strip():
             self._dash_text = text.strip()
@@ -97,19 +97,19 @@ class CliDisplay(BaseDisplay):
 
     async def update_emotion(self, emotion_name: str):
         """
-        更新表情（仅更新仪表盘，不追加新行）。
+        Update表情（仅Update仪表盘，不追加新行）。
         """
         self._dash_emotion = emotion_name
         await self._render_dashboard()
 
     async def start(self):
         """
-        启动异步CLI显示.
+        Start异步CLI显示.
         """
         self._loop = asyncio.get_running_loop()
         await self._init_screen()
 
-        # 启动命令处理任务
+        # Start命令处理任务
         command_task = asyncio.create_task(self._command_processor())
         input_task = asyncio.create_task(self._keyboard_input_loop())
 
@@ -134,7 +134,7 @@ class CliDisplay(BaseDisplay):
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                self.logger.error(f"命令处理错误: {e}")
+                self.logger.error(f"命令处理Error: {e}")
 
     async def _keyboard_input_loop(self):
         """
@@ -147,7 +147,7 @@ class CliDisplay(BaseDisplay):
                     await self._render_input_area()
                     # 自己接管输入（禁用终端回显），逐字重绘输入行，彻底解决中文首字符残留
                     cmd = await asyncio.to_thread(self._read_line_raw)
-                    # 清理输入区（含可能的中文换行残留）并刷新顶部内容
+                    # Cleanup输入区（含可能的中文换行残留）并Refresh顶部内容
                     self._clear_input_area()
                     await self._render_dashboard()
                 else:
@@ -216,21 +216,21 @@ class CliDisplay(BaseDisplay):
 
     async def close(self):
         """
-        关闭CLI显示.
+        CloseCLI显示.
         """
         self.running = False
-        print("\n正在关闭应用...\n")
+        print("\n正在Close应用...\n")
 
     def _print_help(self):
         """
         将帮助信息写入顶部内容显示区，而非直接打印。
         """
-        help_text = "r: 开始/停止 | x: 打断 | q: 退出 | h: 帮助 | 其他: 发送文本"
+        help_text = "r: 开始/Stop | x: 打断 | q: Exit | h: 帮助 | 其他: Send Text"
         self._dash_text = help_text
 
     async def _init_screen(self):
         """
-        初始化屏幕并渲染两块区域（显示区 + 输入区）。
+        Initialization屏幕并渲染两块区域（显示区 + 输入区）。
         """
         if self._use_ansi:
             # 清屏并回到左上
@@ -254,7 +254,7 @@ class CliDisplay(BaseDisplay):
     # ====== 原始输入（Raw mode）支持，避免中文残留 ======
     def _read_line_raw(self) -> str:
         """
-        使用原始模式读取一行：关闭回显、逐字符读取并自行回显， 通过整行重绘避免宽字符（中文）删除残留。
+        使用原始模式读取一行：Close回显、逐字符读取并自行回显， 通过整行重绘避免宽字符（中文）Delete残留。
         """
         fd = sys.stdin.fileno()
         old_settings = termios.tcgetattr(fd)
@@ -283,7 +283,7 @@ class CliDisplay(BaseDisplay):
                     sys.stdout.flush()
                     break
                 elif s in ("\x7f", "\b"):
-                    # 退格：删除一个 Unicode 字符
+                    # 退格：Delete一个 Unicode 字符
                     if buffer:
                         buffer.pop()
                     # 整行重绘，避免中文宽字符残留
@@ -300,17 +300,17 @@ class CliDisplay(BaseDisplay):
 
     def _redraw_input_line(self, content: str) -> None:
         """
-        清空输入行并重写当前内容，确保中文删除无残留。
+        清空输入行并重写当前内容，确保中文Delete无残留。
         """
         cols, rows = self._term_size()
         separator_row = max(1, rows - self._input_area_lines + 1)
         first_input_row = min(rows, separator_row + 1)
-        prompt = "输入: " if not self._use_ansi else "\x1b[1m\x1b[36m输入:\x1b[0m "
+        prompt = "Input: " if not self._use_ansi else "\x1b[1m\x1b[36mInput:\x1b[0m "
         self._goto(first_input_row, 1)
         sys.stdout.write("\x1b[2K")
         visible = content
         # 避免超过一行导致折行
-        max_len = max(1, cols - len("输入: ") - 1)
+        max_len = max(1, cols - len("Input: ") - 1)
         if len(visible) > max_len:
             visible = visible[-max_len:]
         sys.stdout.write(f"{prompt}{visible}")
@@ -318,7 +318,7 @@ class CliDisplay(BaseDisplay):
 
     async def _render_dashboard(self, full: bool = False):
         """
-        在顶部固定区域更新内容显示，不触碰底部输入行。
+        在顶部固定区域Update内容显示，不触碰底部输入行。
         """
 
         # 截断长文本，避免换行撕裂界面
@@ -326,10 +326,10 @@ class CliDisplay(BaseDisplay):
             return s if len(s) <= limit else s[: limit - 1] + "…"
 
         lines = [
-            f"状态: {trunc(self._dash_status)}",
-            f"连接: {'已连接' if self._dash_connected else '未连接'}",
-            f"表情: {trunc(self._dash_emotion)}",
-            f"文本: {trunc(self._dash_text)}",
+            f"Status: {trunc(self._dash_status)}",
+            f"Link: {'Connected' if self._dash_connected else 'Disconnected'}",
+            f"Emotion: {trunc(self._dash_emotion)}",
+            f"Text: {trunc(self._dash_text)}",
         ]
 
         if not self._use_ansi:
@@ -349,7 +349,7 @@ class CliDisplay(BaseDisplay):
             prefix = "".join(self._ansi.get(n, "") for n in names)
             return f"{prefix}{s}{self._ansi['reset']}"
 
-        title = style(" 小智 AI 终端 ", "bold", "cyan")
+        title = style(" Xiaozhi AI Terminal ", "bold", "cyan")
         # 头部框和底部框
         top_bar = "┌" + ("─" * (max(2, cols - 2))) + "┐"
         title_line = "│" + title.center(max(2, cols - 2)) + "│"
@@ -364,7 +364,7 @@ class CliDisplay(BaseDisplay):
             text = style(text, "green") if i == 0 else text
             body.append("│" + text.ljust(max(2, cols - 2))[: max(2, cols - 2)] + "│")
 
-        # 保存光标位置
+        # Save光标位置
         sys.stdout.write("\x1b7")
 
         # 在绘制前彻底清空上一帧可能残留的区域，避免视觉上出现“两层”
@@ -392,7 +392,7 @@ class CliDisplay(BaseDisplay):
         self._goto(4 + body_rows, 1)
         sys.stdout.write("\x1b[2K" + bottom_bar[:cols])
 
-        # 恢复光标位置
+        # Resume光标位置
         sys.stdout.write("\x1b8")
         sys.stdout.flush()
 
@@ -420,7 +420,7 @@ class CliDisplay(BaseDisplay):
         first_input_row = min(rows, separator_row + 1)
         second_input_row = min(rows, separator_row + 2)
 
-        # 保存光标
+        # Save光标
         sys.stdout.write("\x1b7")
         # 分隔线
         self._goto(separator_row, 1)
@@ -430,15 +430,15 @@ class CliDisplay(BaseDisplay):
         # 输入提示行（清空并写提示）
         self._goto(first_input_row, 1)
         sys.stdout.write("\x1b[2K")
-        prompt = "输入: " if not self._use_ansi else "\x1b[1m\x1b[36m输入:\x1b[0m "
+        prompt = "Input: " if not self._use_ansi else "\x1b[1m\x1b[36mInput:\x1b[0m "
         sys.stdout.write(prompt)
 
-        # 预留一行做溢出清理
+        # 预留一行做溢出Cleanup
         self._goto(second_input_row, 1)
         sys.stdout.write("\x1b[2K")
         sys.stdout.flush()
 
-        # 恢复光标到原处，再把光标移动到输入位置供 input 使用
+        # Resume光标到原处，再把光标移动到输入位置供 input 使用
         sys.stdout.write("\x1b8")
         self._goto(first_input_row, 1)
         sys.stdout.write(prompt)
@@ -448,10 +448,10 @@ class CliDisplay(BaseDisplay):
         """
         CLI模式下的模式切换（无操作）
         """
-        self.logger.debug("CLI模式下不支持模式切换")
+        self.logger.debug("Mode toggle not supported in CLI mode")
 
     async def toggle_window_visibility(self):
         """
         CLI模式下的窗口切换（无操作）
         """
-        self.logger.debug("CLI模式下不支持窗口切换")
+        self.logger.debug("Window toggle not supported in CLI mode")

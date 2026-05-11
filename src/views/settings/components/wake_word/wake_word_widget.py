@@ -67,7 +67,7 @@ class WakeWordWidget(QWidget):
             "w",
         ]
 
-        # 初始化UI
+        # InitializationUI
         self._setup_ui()
         self._connect_events()
         self._load_config_values()
@@ -82,16 +82,16 @@ class WakeWordWidget(QWidget):
             ui_path = Path(__file__).parent / "wake_word_widget.ui"
             uic.loadUi(str(ui_path), self)
 
-            # 获取UI控件引用
+            # GetUI控件引用
             self._get_ui_controls()
 
         except Exception as e:
-            self.logger.error(f"设置唤醒词UI失败: {e}", exc_info=True)
+            self.logger.error(f"设置唤醒词UIFailure: {e}", exc_info=True)
             raise
 
     def _get_ui_controls(self):
         """
-        获取UI控件引用.
+        GetUI控件引用.
         """
         self.ui_controls.update(
             {
@@ -104,7 +104,7 @@ class WakeWordWidget(QWidget):
 
     def _connect_events(self):
         """
-        连接事件处理.
+        Connect事件处理.
         """
         if self.ui_controls["use_wake_word_check"]:
             self.ui_controls["use_wake_word_check"].toggled.connect(
@@ -128,10 +128,10 @@ class WakeWordWidget(QWidget):
 
     def _load_config_values(self):
         """
-        从配置文件加载值到UI控件.
+        从Configuration文件Load值到UI控件.
         """
         try:
-            # 唤醒词配置
+            # 唤醒词Configuration
             use_wake_word = self.config_manager.get_config(
                 "WAKE_WORD_OPTIONS.USE_WAKE_WORD", False
             )
@@ -149,7 +149,7 @@ class WakeWordWidget(QWidget):
                 self.ui_controls["wake_words_edit"].setPlainText(wake_words_text)
 
         except Exception as e:
-            self.logger.error(f"加载唤醒词配置值失败: {e}", exc_info=True)
+            self.logger.error(f"Load唤醒词Configuration值Failure: {e}", exc_info=True)
 
     def _set_text_value(self, control_name: str, value: str):
         """
@@ -161,7 +161,7 @@ class WakeWordWidget(QWidget):
 
     def _get_text_value(self, control_name: str) -> str:
         """
-        获取文本控件的值.
+        Get文本控件的值.
         """
         control = self.ui_controls.get(control_name)
         if control and hasattr(control, "text"):
@@ -197,8 +197,8 @@ class WakeWordWidget(QWidget):
                 )
 
         except Exception as e:
-            self.logger.error(f"浏览模型路径失败: {e}", exc_info=True)
-            QMessageBox.warning(self, "错误", f"浏览模型路径时发生错误: {str(e)}")
+            self.logger.error(f"浏览模型路径Failure: {e}", exc_info=True)
+            QMessageBox.warning(self, "Error", f"浏览模型路径时发生Error: {str(e)}")
 
     def _convert_to_relative_path(self, model_path: str) -> str:
         """
@@ -207,7 +207,7 @@ class WakeWordWidget(QWidget):
         try:
             import os
 
-            # 获取项目根目录
+            # Get项目根目录
             project_root = get_project_root()
 
             # 检查是否在同一盘符（仅在Windows上适用）
@@ -243,10 +243,10 @@ class WakeWordWidget(QWidget):
 
     def _load_keywords_from_file(self) -> str:
         """
-        从 keywords.txt 文件加载唤醒词，只显示中文部分.
+        从 keywords.txt 文件Load唤醒词，只显示中文部分.
         """
         try:
-            # 获取配置的模型路径
+            # GetConfiguration的模型路径
             model_path = self.config_manager.get_config(
                 "WAKE_WORD_OPTIONS.MODEL_PATH", "models"
             )
@@ -276,7 +276,7 @@ class WakeWordWidget(QWidget):
             return "\n".join(keywords)
 
         except Exception as e:
-            self.logger.error(f"读取关键词文件失败: {e}")
+            self.logger.error(f"读取关键词文件Failure: {e}")
             return ""
 
     def _split_pinyin(self, pinyin: str) -> list:
@@ -310,7 +310,7 @@ class WakeWordWidget(QWidget):
         """
         if not PYPINYIN_AVAILABLE:
             self.logger.error("pypinyin库未安装，无法自动转换")
-            return f"# 转换失败（缺少pypinyin） - {chinese_text}"
+            return f"# 转换Failure（缺少pypinyin） - {chinese_text}"
 
         try:
             # 转换为带声调拼音
@@ -329,12 +329,12 @@ class WakeWordWidget(QWidget):
             return keyword_line
 
         except Exception as e:
-            self.logger.error(f"转换拼音失败: {e}")
-            return f"# 转换失败 - {chinese_text}"
+            self.logger.error(f"转换拼音Failure: {e}")
+            return f"# 转换Failure - {chinese_text}"
 
     def _save_keywords_to_file(self, keywords_text: str):
         """
-        保存唤醒词到 keywords.txt 文件，自动将中文转换为拼音格式.
+        Save唤醒词到 keywords.txt 文件，自动将中文转换为拼音格式.
         """
         try:
             # 检查pypinyin是否可用
@@ -347,7 +347,7 @@ class WakeWordWidget(QWidget):
                 )
                 return
 
-            # 获取配置的模型路径
+            # GetConfiguration的模型路径
             model_path = self.config_manager.get_config(
                 "WAKE_WORD_OPTIONS.MODEL_PATH", "models"
             )
@@ -359,8 +359,8 @@ class WakeWordWidget(QWidget):
                 self.logger.error(f"模型目录不存在: {model_path}")
                 QMessageBox.warning(
                     self,
-                    "错误",
-                    f"模型目录不存在: {model_path}\n请先配置正确的模型路径。",
+                    "Error",
+                    f"模型目录不存在: {model_path}\n请先Configuration正确的模型路径。",
                 )
                 return
 
@@ -380,26 +380,26 @@ class WakeWordWidget(QWidget):
                 f.write("\n".join(processed_lines) + "\n")
 
             self.logger.info(
-                f"成功保存 {len(processed_lines)} 个关键词到 {keywords_file}"
+                f"SuccessSave {len(processed_lines)} 个关键词到 {keywords_file}"
             )
             QMessageBox.information(
                 self,
-                "保存成功",
-                f"成功保存 {len(processed_lines)} 个唤醒词\n\n" f"已自动转换为拼音格式",
+                "SaveSuccess",
+                f"SuccessSave {len(processed_lines)} 个唤醒词\n\n" f"已自动转换为拼音格式",
             )
 
         except Exception as e:
-            self.logger.error(f"保存关键词文件失败: {e}")
-            QMessageBox.warning(self, "错误", f"保存关键词失败: {str(e)}")
+            self.logger.error(f"Save关键词文件Failure: {e}")
+            QMessageBox.warning(self, "Error", f"Save关键词Failure: {str(e)}")
 
     def get_config_data(self) -> dict:
         """
-        获取当前配置数据.
+        Get当前Configuration数据.
         """
         config_data = {}
 
         try:
-            # 唤醒词配置
+            # 唤醒词Configuration
             if self.ui_controls["use_wake_word_check"]:
                 use_wake_word = self.ui_controls["use_wake_word_check"].isChecked()
                 config_data["WAKE_WORD_OPTIONS.USE_WAKE_WORD"] = use_wake_word
@@ -411,13 +411,13 @@ class WakeWordWidget(QWidget):
                 config_data["WAKE_WORD_OPTIONS.MODEL_PATH"] = relative_path
 
         except Exception as e:
-            self.logger.error(f"获取唤醒词配置数据失败: {e}", exc_info=True)
+            self.logger.error(f"Get唤醒词Configuration数据Failure: {e}", exc_info=True)
 
         return config_data
 
     def save_keywords(self):
         """
-        保存唤醒词到文件.
+        Save唤醒词到文件.
         """
         if self.ui_controls["wake_words_edit"]:
             wake_words_text = self.ui_controls["wake_words_edit"].toPlainText().strip()
@@ -428,10 +428,10 @@ class WakeWordWidget(QWidget):
         重置为默认值.
         """
         try:
-            # 获取默认配置
+            # Get默认Configuration
             default_config = ConfigManager.DEFAULT_CONFIG
 
-            # 唤醒词配置
+            # 唤醒词Configuration
             wake_word_config = default_config["WAKE_WORD_OPTIONS"]
             if self.ui_controls["use_wake_word_check"]:
                 self.ui_controls["use_wake_word_check"].setChecked(
@@ -445,14 +445,14 @@ class WakeWordWidget(QWidget):
                 default_keywords = self._get_default_keywords()
                 self.ui_controls["wake_words_edit"].setPlainText(default_keywords)
 
-            self.logger.info("唤醒词配置已重置为默认值")
+            self.logger.info("唤醒词Configuration已重置为默认值")
 
         except Exception as e:
-            self.logger.error(f"重置唤醒词配置失败: {e}", exc_info=True)
+            self.logger.error(f"重置唤醒词ConfigurationFailure: {e}", exc_info=True)
 
     def _get_default_keywords(self) -> str:
         """
-        获取默认关键词列表，只返回中文.
+        Get默认关键词列表，只返回中文.
         """
         default_keywords = [
             "小爱同学",

@@ -34,25 +34,25 @@ async def set_volume(args: Dict[str, Any]) -> bool:
 
         volume_controller = VolumeController()
         await asyncio.to_thread(volume_controller.set_volume, volume)
-        logger.info(f"[SystemTools] 音量设置成功: {volume}")
+        logger.info(f"[SystemTools] 音量设置Success: {volume}")
         return True
 
     except KeyError:
         logger.error("[SystemTools] 缺少volume参数")
         return False
     except Exception as e:
-        logger.error(f"[SystemTools] 设置音量失败: {e}", exc_info=True)
+        logger.error(f"[SystemTools] 设置音量Failure: {e}", exc_info=True)
         return False
 
 
 async def get_volume(args: Dict[str, Any]) -> int:
     """
-    获取当前音量.
+    Get当前音量.
     """
     try:
-        logger.info("[SystemTools] 获取当前音量")
+        logger.info("[SystemTools] Get当前音量")
 
-        # 直接使用VolumeController获取音量
+        # 直接使用VolumeControllerGet音量
         from src.utils.volume_controller import VolumeController
 
         # 检查依赖并创建音量控制器
@@ -66,7 +66,7 @@ async def get_volume(args: Dict[str, Any]) -> int:
         return current_volume
 
     except Exception as e:
-        logger.error(f"[SystemTools] 获取音量失败: {e}", exc_info=True)
+        logger.error(f"[SystemTools] Get音量Failure: {e}", exc_info=True)
         from src.utils.volume_controller import VolumeController
 
         return VolumeController.DEFAULT_VOLUME
@@ -74,14 +74,14 @@ async def get_volume(args: Dict[str, Any]) -> int:
 
 async def _get_audio_status() -> Dict[str, Any]:
     """
-    获取音频状态.
+    Get音频状态.
     """
     try:
         from src.utils.volume_controller import VolumeController
 
         if VolumeController.check_dependencies():
             volume_controller = VolumeController()
-            # 使用线程池获取音量，避免阻塞
+            # 使用线程池Get音量，避免阻塞
             current_volume = await asyncio.to_thread(volume_controller.get_volume)
             return {
                 "volume": current_volume,
@@ -97,13 +97,13 @@ async def _get_audio_status() -> Dict[str, Any]:
             }
 
     except Exception as e:
-        logger.warning(f"[SystemTools] 获取音频状态失败: {e}")
+        logger.warning(f"[SystemTools] Get音频状态Failure: {e}")
         return {"volume": 50, "muted": False, "available": False, "error": str(e)}
 
 
 def _get_application_status() -> Dict[str, Any]:
     """
-    获取应用状态信息.
+    Get应用状态信息.
     """
     try:
         from src.application import Application
@@ -122,5 +122,5 @@ def _get_application_status() -> Dict[str, Any]:
         }
 
     except Exception as e:
-        logger.warning(f"[SystemTools] 获取应用状态失败: {e}")
+        logger.warning(f"[SystemTools] Get应用状态Failure: {e}")
         return {"device_state": "unknown", "iot_devices": 0, "error": str(e)}

@@ -5,7 +5,7 @@ from .base import Plugin
 
 class PluginManager:
     """
-    轻量插件管理器：统一setup/start/stop/shutdown广播；错误隔离。 插件按 priority 排序后注册（数值越小越优先）。
+    轻量插件管理器：统一setup/start/stop/shutdown广播；Error隔离。 插件按 priority 排序后Register（数值越小越优先）。
     """
 
     def __init__(self) -> None:
@@ -27,7 +27,7 @@ class PluginManager:
 
     def get_plugin(self, name: str) -> Plugin | None:
         """
-        根据插件名获取插件实例。返回 None 表示未注册。
+        根据插件名Get插件实例。返回 None 表示未Register。
         """
         try:
             return self._by_name.get(name)

@@ -32,11 +32,11 @@ class ResourceFinder:
         # 运行基目录（_MEIPASS / exe_dir / project_root）
         self._base_dir = self._runtime_base_dir()
 
-        # 加载元信息（manifest/Info.plist/环境变量）
+        # Load元信息（manifest/Info.plist/环境变量）
         self._meta = self._load_app_meta(self._base_dir)
         self._app_name = self._derive_app_name(self._meta)
 
-        # 构建搜索路径（有序、去重）
+        # 构建Search路径（有序、去重）
         self._search_dirs = self._build_search_dirs()
 
     # -------------- 公共 API --------------

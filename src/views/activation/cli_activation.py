@@ -34,22 +34,22 @@ class CLIActivation:
         """运行完整的CLI激活流程.
 
         Returns:
-            bool: 激活是否成功
+            bool: 激活是否Success
         """
         try:
             self._print_header()
 
             # 如果已经提供了SystemInitializer实例，直接使用
             if self.system_initializer:
-                self._log_and_print("使用已初始化的系统")
+                self._log_and_print("使用已Initialization的系统")
                 self._update_device_info()
                 return await self._start_activation_process()
             else:
-                # 否则创建新的实例并运行初始化
-                self._log_and_print("开始系统初始化流程")
+                # 否则创建新的实例并运行Initialization
+                self._log_and_print("开始系统Initialization流程")
                 self.system_initializer = SystemInitializer()
 
-                # 运行初始化流程
+                # 运行Initialization流程
                 init_result = await self.system_initializer.run_initialization()
 
                 if init_result.get("success", False):
@@ -64,21 +64,21 @@ class CLIActivation:
                     if init_result.get("need_activation_ui", True):
                         return await self._start_activation_process()
                     else:
-                        # 无需激活，直接完成
+                        # 无需激活，直接Complete
                         self.is_activated = True
                         self._log_and_print("设备已激活，无需进一步操作")
                         return True
                 else:
-                    error_msg = init_result.get("error", "初始化失败")
-                    self._log_and_print(f"错误: {error_msg}")
+                    error_msg = init_result.get("error", "InitializationFailure")
+                    self._log_and_print(f"Error: {error_msg}")
                     return False
 
         except KeyboardInterrupt:
             self._log_and_print("\n用户中断激活流程")
             return False
         except Exception as e:
-            self.logger.error(f"CLI激活过程异常: {e}", exc_info=True)
-            self._log_and_print(f"激活异常: {e}")
+            self.logger.error(f"CLI激活过程Exception: {e}", exc_info=True)
+            self._log_and_print(f"激活Exception: {e}")
             return False
 
     def _print_header(self):
@@ -88,12 +88,12 @@ class CLIActivation:
         print("\n" + "=" * 60)
         print("小智AI客户端 - 设备激活流程")
         print("=" * 60)
-        print("正在初始化设备，请稍候...")
+        print("正在Initialization设备，请稍候...")
         print()
 
     def _update_device_info(self):
         """
-        更新设备信息显示.
+        Update设备信息显示.
         """
         if (
             not self.system_initializer
@@ -103,17 +103,17 @@ class CLIActivation:
 
         device_fp = self.system_initializer.device_fingerprint
 
-        # 获取设备信息
+        # Get设备信息
         serial_number = device_fp.get_serial_number()
         mac_address = device_fp.get_mac_address_from_efuse()
 
-        # 获取激活状态
+        # Get激活状态
         activation_status = self.system_initializer.get_activation_status()
         local_activated = activation_status.get("local_activated", False)
         server_activated = activation_status.get("server_activated", False)
         status_consistent = activation_status.get("status_consistent", True)
 
-        # 更新激活状态
+        # Update激活状态
         self.is_activated = local_activated
 
         # 显示设备信息
@@ -130,19 +130,19 @@ class CLIActivation:
         else:
             status_text = "已激活" if local_activated else "未激活"
 
-        print(f"   激活状态: {status_text}")
+        print(f"   激活Status: {status_text}")
 
     async def _start_activation_process(self) -> bool:
         """
         开始激活流程.
         """
         try:
-            # 获取激活数据
+            # Get激活数据
             activation_data = self.system_initializer.get_activation_data()
 
             if not activation_data:
-                self._log_and_print("\n未获取到激活数据")
-                print("错误: 未获取到激活数据，请检查网络连接")
+                self._log_and_print("\n未Get到激活数据")
+                print("Error: 未Get到激活数据，请检查网络Connect")
                 return False
 
             self.activation_data = activation_data
@@ -150,30 +150,30 @@ class CLIActivation:
             # 显示激活信息
             self._show_activation_info(activation_data)
 
-            # 初始化设备激活器
+            # Initialization设备激活器
             config_manager = self.system_initializer.get_config_manager()
             self.device_activator = DeviceActivator(config_manager)
 
             # 开始激活流程
             self._log_and_print("\n开始设备激活流程...")
-            print("正在连接激活服务器，请保持网络连接...")
+            print("Connecting激活服务器，请保持网络Connect...")
 
             activation_success = await self.device_activator.process_activation(
                 activation_data
             )
 
             if activation_success:
-                self._log_and_print("\n设备激活成功！")
+                self._log_and_print("\n设备激活Success！")
                 self._print_activation_success()
                 return True
             else:
-                self._log_and_print("\n设备激活失败")
+                self._log_and_print("\n设备激活Failure")
                 self._print_activation_failure()
                 return False
 
         except Exception as e:
-            self.logger.error(f"激活流程异常: {e}", exc_info=True)
-            self._log_and_print(f"\n激活异常: {e}")
+            self.logger.error(f"激活流程Exception: {e}", exc_info=True)
+            self._log_and_print(f"\n激活Exception: {e}")
             return False
 
     def _show_activation_info(self, activation_data: dict):
@@ -193,43 +193,43 @@ class CLIActivation:
         # 格式化显示验证码（每个字符间加空格）
         formatted_code = " ".join(code)
         print(f"\n验证码（请在网站输入）: {formatted_code}")
-        print("\n请按以下步骤完成激活:")
+        print("\n请按以下步骤Complete激活:")
         print("1. 打开浏览器访问 xiaozhi.me")
         print("2. 登录您的账户")
         print("3. 选择添加设备")
         print(f"4. 输入验证码: {formatted_code}")
         print("5. 确认添加设备")
-        print("\n等待激活确认中，请在网站完成操作...")
+        print("\n等待激活确认中，请在网站Complete操作...")
 
         self._log_and_print(f"激活验证码: {code}")
         self._log_and_print(f"激活说明: {message}")
 
     def _print_activation_success(self):
         """
-        打印激活成功信息.
+        打印激活Success信息.
         """
         print("\n" + "=" * 60)
-        print("设备激活成功！")
+        print("设备激活Success！")
         print("=" * 60)
-        print("设备已成功添加到您的账户")
-        print("配置已自动更新")
-        print("准备启动小智AI客户端...")
+        print("设备已Success添加到您的账户")
+        print("Configuration已自动Update")
+        print("准备Start小智AI客户端...")
         print("=" * 60)
 
     def _print_activation_failure(self):
         """
-        打印激活失败信息.
+        打印激活Failure信息.
         """
         print("\n" + "=" * 60)
-        print("设备激活失败")
+        print("设备激活Failure")
         print("=" * 60)
-        print("可能的原因:")
-        print("• 网络连接不稳定")
-        print("• 验证码输入错误或已过期")
+        print("可能的reason:")
+        print("• 网络Connect不稳定")
+        print("• 验证码输入Error或已过期")
         print("• 服务器暂时不可用")
         print("\n解决方案:")
-        print("• 检查网络连接")
-        print("• 重新运行程序获取新验证码")
+        print("• 检查网络Connect")
+        print("• 重新运行程序Get新验证码")
         print("• 确保在网站正确输入验证码")
         print("=" * 60)
 
@@ -244,7 +244,7 @@ class CLIActivation:
 
     def get_activation_result(self) -> dict:
         """
-        获取激活结果.
+        Get激活结果.
         """
         device_fingerprint = None
         config_manager = None

@@ -1,6 +1,6 @@
 """系统工具管理器.
 
-负责系统工具的初始化、配置和MCP工具注册
+负责系统工具的Initialization、Configuration和MCP工具Register
 """
 
 from typing import Any, Dict
@@ -22,55 +22,55 @@ class SystemToolsManager:
 
     def __init__(self):
         """
-        初始化系统工具管理器.
+        Initialization系统工具管理器.
         """
         self._initialized = False
-        logger.info("[SystemManager] 系统工具管理器初始化")
+        logger.info("[SystemManager] 系统工具管理器Initialization")
 
     def init_tools(self, add_tool, PropertyList, Property, PropertyType):
         """
-        初始化并注册所有系统工具.
+        Initialization并Register所有系统工具.
         """
         try:
-            logger.info("[SystemManager] 开始注册系统工具")
+            logger.info("[SystemManager] 开始Register系统工具")
 
-            # 注册音量控制工具
+            # Register音量控制工具
             self._register_volume_control_tool(
                 add_tool, PropertyList, Property, PropertyType
             )
 
-            # 注册音量获取工具
+            # Register音量Get工具
             self._register_volume_get_tool(
                 add_tool, PropertyList, Property, PropertyType
             )
 
-            # 注册应用程序启动工具
+            # Register应用程序Start工具
             self._register_app_launcher_tool(
                 add_tool, PropertyList, Property, PropertyType
             )
 
-            # 注册应用程序扫描工具
+            # Register应用程序扫描工具
             self._register_app_scanner_tool(
                 add_tool, PropertyList, Property, PropertyType
             )
 
-            # 注册应用程序关闭工具
+            # Register应用程序Close工具
             self._register_app_killer_tools(
                 add_tool, PropertyList, Property, PropertyType
             )
 
             self._initialized = True
-            logger.info("[SystemManager] 系统工具注册完成")
+            logger.info("[SystemManager] 系统工具RegisterComplete")
 
         except Exception as e:
-            logger.error(f"[SystemManager] 系统工具注册失败: {e}", exc_info=True)
+            logger.error(f"[SystemManager] 系统工具RegisterFailure: {e}", exc_info=True)
             raise
 
     def _register_volume_control_tool(
         self, add_tool, PropertyList, Property, PropertyType
     ):
         """
-        注册音量控制工具.
+        Register音量控制工具.
         """
         volume_props = PropertyList(
             [Property("volume", PropertyType.INTEGER, min_value=0, max_value=100)]
@@ -88,13 +88,13 @@ class SystemToolsManager:
                 set_volume,
             )
         )
-        logger.debug("[SystemManager] 注册音量控制工具成功")
+        logger.debug("[SystemManager] Register音量控制工具Success")
 
     def _register_volume_get_tool(
         self, add_tool, PropertyList, Property, PropertyType
     ):
         """
-        注册音量获取工具.
+        Register音量Get工具.
         """
         get_volume_props = PropertyList([])
         add_tool(
@@ -110,13 +110,13 @@ class SystemToolsManager:
                 get_volume,
             )
         )
-        logger.debug("[SystemManager] 注册音量获取工具成功")
+        logger.debug("[SystemManager] Register音量Get工具Success")
 
     def _register_app_launcher_tool(
         self, add_tool, PropertyList, Property, PropertyType
     ):
         """
-        注册应用程序启动工具.
+        Register应用程序Start工具.
         """
         app_props = PropertyList([Property("app_name", PropertyType.STRING)])
         add_tool(
@@ -143,13 +143,13 @@ class SystemToolsManager:
                 launch_application,
             )
         )
-        logger.debug("[SystemManager] 注册应用程序启动工具成功")
+        logger.debug("[SystemManager] Register应用程序Start工具Success")
 
     def _register_app_scanner_tool(
         self, add_tool, PropertyList, Property, PropertyType
     ):
         """
-        注册应用程序扫描工具.
+        Register应用程序扫描工具.
         """
         scanner_props = PropertyList(
             [Property("force_refresh", PropertyType.BOOLEAN, default_value=False)]
@@ -176,15 +176,15 @@ class SystemToolsManager:
                 scan_installed_applications,
             )
         )
-        logger.debug("[SystemManager] 注册应用程序扫描工具成功")
+        logger.debug("[SystemManager] Register应用程序扫描工具Success")
 
     def _register_app_killer_tools(
         self, add_tool, PropertyList, Property, PropertyType
     ):
         """
-        注册应用程序关闭工具.
+        Register应用程序Close工具.
         """
-        # 注册应用程序关闭工具
+        # Register应用程序Close工具
         killer_props = PropertyList(
             [
                 Property("app_name", PropertyType.STRING),
@@ -213,7 +213,7 @@ class SystemToolsManager:
             )
         )
 
-        # 注册运行中应用程序列表工具
+        # Register运行中应用程序列表工具
         list_props = PropertyList(
             [Property("filter_name", PropertyType.STRING, default_value="")]
         )
@@ -236,17 +236,17 @@ class SystemToolsManager:
                 list_running_applications,
             )
         )
-        logger.debug("[SystemManager] 注册应用程序关闭工具成功")
+        logger.debug("[SystemManager] Register应用程序Close工具Success")
 
     def is_initialized(self) -> bool:
         """
-        检查管理器是否已初始化.
+        检查管理器是否已Initialization.
         """
         return self._initialized
 
     def get_status(self) -> Dict[str, Any]:
         """
-        获取管理器状态.
+        Get管理器状态.
         """
         available_tools = [
             "set_volume",
@@ -269,7 +269,7 @@ _system_tools_manager = None
 
 def get_system_tools_manager() -> SystemToolsManager:
     """
-    获取系统工具管理器单例.
+    Get系统工具管理器单例.
     """
     global _system_tools_manager
     if _system_tools_manager is None:

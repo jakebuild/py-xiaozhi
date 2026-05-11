@@ -28,8 +28,8 @@ class ActivationWindow(BaseWindow, AsyncMixin):
     """
 
     # 自定义信号
-    activation_completed = pyqtSignal(bool)  # 激活完成信号
-    window_closed = pyqtSignal()  # 窗口关闭信号
+    activation_completed = pyqtSignal(bool)  # 激活Complete信号
+    window_closed = pyqtSignal()  # 窗口Close信号
 
     def __init__(
         self,
@@ -60,8 +60,8 @@ class ActivationWindow(BaseWindow, AsyncMixin):
         # 窗口拖拽相关
         self.drag_position = None
 
-        # 延迟启动初始化（等事件循环运行后）
-        self.start_update_timer(100)  # 100ms后开始初始化
+        # 延迟StartInitialization（等事件循环运行后）
+        self.start_update_timer(100)  # 100ms后开始Initialization
 
     def _setup_ui(self):
         """
@@ -106,23 +106,23 @@ class ActivationWindow(BaseWindow, AsyncMixin):
 
         self.qml_widget.setClearColor(Qt.transparent)
 
-        # 注册数据模型到QML上下文
+        # Register数据模型到QML上下文
         qml_context = self.qml_widget.rootContext()
         qml_context.setContextProperty("activationModel", self.activation_model)
 
-        # 加载QML文件
+        # LoadQML文件
         qml_file = Path(__file__).parent / "activation_window.qml"
         self.qml_widget.setSource(QUrl.fromLocalFile(str(qml_file)))
 
-        # 检查QML是否加载成功
+        # 检查QML是否LoadSuccess
         if self.qml_widget.status() == QQuickWidget.Error:
-            self.logger.error("QML加载失败，可能原因：")
+            self.logger.error("QMLLoadFailure，可能原因：")
             for error in self.qml_widget.errors():
                 self.logger.error(f"  - {error.toString()}")
 
-            # 在Wayland环境下，如果QML加载失败，提示用户使用CLI模式
+            # 在Wayland环境下，如果QMLLoadFailure，提示用户使用CLI模式
             if is_wayland:
-                self.logger.warning("Wayland环境下QML加载失败，建议使用CLI模式激活")
+                self.logger.warning("Wayland环境下QMLLoadFailure，建议使用CLI模式激活")
                 self.logger.info("使用命令: python main.py --mode cli")
 
         # 添加到布局
@@ -131,14 +131,14 @@ class ActivationWindow(BaseWindow, AsyncMixin):
         # 设置自适应尺寸
         self._setup_adaptive_size()
 
-        # 延迟设置连接，确保QML完全加载
+        # 延迟设置Connect，确保QML完全Load
         self._setup_qml_connections()
 
     def _setup_adaptive_size(self):
         """
         设置自适应窗口尺寸.
         """
-        # 获取屏幕尺寸
+        # Get屏幕尺寸
         screen = QApplication.primaryScreen()
         screen_size = screen.size()
         screen_width = screen_size.width()
@@ -203,58 +203,58 @@ class ActivationWindow(BaseWindow, AsyncMixin):
 
     def _setup_connections(self):
         """
-        设置信号连接.
+        设置信号Connect.
         """
-        # 连接数据模型信号
+        # Connect数据模型信号
         self.activation_model.copyCodeClicked.connect(self._on_copy_code_clicked)
         self.activation_model.retryClicked.connect(self._on_retry_clicked)
         self.activation_model.closeClicked.connect(self.close)
 
-        self.logger.debug("基础信号连接设置完成")
+        self.logger.debug("基础信号Connect设置Complete")
 
     def _setup_qml_connections(self):
         """
-        设置QML信号连接.
+        设置QML信号Connect.
         """
-        # 连接QML信号到Python槽
+        # ConnectQML信号到Python槽
         if self.qml_widget and self.qml_widget.rootObject():
             root_object = self.qml_widget.rootObject()
             root_object.copyCodeClicked.connect(self._on_copy_code_clicked)
             root_object.retryClicked.connect(self._on_retry_clicked)
             root_object.closeClicked.connect(self.close)
-            self.logger.debug("QML信号连接设置完成")
+            self.logger.debug("QML信号Connect设置Complete")
         else:
-            self.logger.warning("QML根对象未找到，无法设置信号连接")
+            self.logger.warning("QML根对象未找到，无法设置信号Connect")
 
     def _setup_signal_connections(self):
         """
-        设置异步信号连接.
+        设置异步信号Connect.
         """
         self.signal_emitter.status_changed.connect(self._on_status_changed)
         self.signal_emitter.error_occurred.connect(self._on_error_occurred)
         self.signal_emitter.data_ready.connect(self._on_data_ready)
 
     def _on_timer_update(self):
-        """定时器更新回调 - 启动初始化"""
+        """定时器Update回调 - StartInitialization"""
         if not self.initialization_started:
             self.initialization_started = True
-            self.stop_update_timer()  # 停止定时器
+            self.stop_update_timer()  # Stop定时器
 
-            # 只有在有系统初始化器时才启动初始化
+            # 只有在有系统Initialization器时才StartInitialization
             if self.system_initializer is not None:
                 # 现在事件循环应该正在运行，可以创建异步任务
                 try:
                     self.create_task(self._start_initialization(), "initialization")
                 except RuntimeError as e:
-                    self.logger.error(f"创建初始化任务失败: {e}")
-                    # 如果还是失败，再试一次
+                    self.logger.error(f"创建Initialization任务Failure: {e}")
+                    # 如果还是Failure，再试一次
                     self.start_update_timer(500)
             else:
-                self.logger.info("无系统初始化器，跳过自动初始化")
+                self.logger.info("无系统Initialization器，跳过自动Initialization")
 
     async def _start_initialization(self):
         """
-        开始系统初始化流程.
+        开始系统Initialization流程.
         """
         try:
             # 如果已经提供了SystemInitializer实例，直接使用
@@ -262,10 +262,10 @@ class ActivationWindow(BaseWindow, AsyncMixin):
                 self._update_device_info()
                 await self._start_activation_process()
             else:
-                # 否则创建新的实例并运行初始化
+                # 否则创建新的实例并运行Initialization
                 self.system_initializer = SystemInitializer()
 
-                # 运行初始化流程
+                # 运行Initialization流程
                 init_result = await self.system_initializer.run_initialization()
 
                 if init_result.get("success", False):
@@ -280,20 +280,20 @@ class ActivationWindow(BaseWindow, AsyncMixin):
                     if init_result.get("need_activation_ui", True):
                         await self._start_activation_process()
                     else:
-                        # 无需激活，直接完成
+                        # 无需激活，直接Complete
                         self.is_activated = True
                         self.activation_completed.emit(True)
                 else:
-                    error_msg = init_result.get("error", "初始化失败")
+                    error_msg = init_result.get("error", "InitializationFailure")
                     self.signal_emitter.emit_error(error_msg)
 
         except Exception as e:
-            self.logger.error(f"初始化过程异常: {e}", exc_info=True)
-            self.signal_emitter.emit_error(f"初始化异常: {e}")
+            self.logger.error(f"Initialization过程Exception: {e}", exc_info=True)
+            self.signal_emitter.emit_error(f"InitializationException: {e}")
 
     def _update_device_info(self):
         """
-        更新设备信息显示.
+        Update设备信息显示.
         """
         if (
             not self.system_initializer
@@ -303,21 +303,21 @@ class ActivationWindow(BaseWindow, AsyncMixin):
 
         device_fp = self.system_initializer.device_fingerprint
 
-        # 更新序列号
+        # Update序列号
         serial_number = device_fp.get_serial_number()
         self.activation_model.serialNumber = serial_number if serial_number else "--"
 
-        # 更新MAC地址
+        # UpdateMAC地址
         mac_address = device_fp.get_mac_address_from_efuse()
         self.activation_model.macAddress = mac_address if mac_address else "--"
 
-        # 获取激活状态
+        # Get激活状态
         activation_status = self.system_initializer.get_activation_status()
         local_activated = activation_status.get("local_activated", False)
         server_activated = activation_status.get("server_activated", False)
         status_consistent = activation_status.get("status_consistent", True)
 
-        # 更新激活状态显示
+        # Update激活状态显示
         self.is_activated = local_activated
 
         if not status_consistent:
@@ -330,7 +330,7 @@ class ActivationWindow(BaseWindow, AsyncMixin):
             else:
                 self.activation_model.set_status_not_activated()
 
-        # 初始化激活码显示
+        # Initialization激活码显示
         self.activation_model.reset_activation_code()
 
     async def _start_activation_process(self):
@@ -338,11 +338,11 @@ class ActivationWindow(BaseWindow, AsyncMixin):
         开始激活流程.
         """
         try:
-            # 获取激活数据
+            # Get激活数据
             activation_data = self.system_initializer.get_activation_data()
 
             if not activation_data:
-                self.signal_emitter.emit_error("未获取到激活数据，请检查网络连接")
+                self.signal_emitter.emit_error("未Get到激活数据，请检查网络Connect")
                 return
 
             self.activation_data = activation_data
@@ -350,7 +350,7 @@ class ActivationWindow(BaseWindow, AsyncMixin):
             # 显示激活信息
             self._show_activation_info(activation_data)
 
-            # 初始化设备激活器
+            # Initialization设备激活器
             config_manager = self.system_initializer.get_config_manager()
             self.device_activator = DeviceActivator(config_manager)
 
@@ -360,21 +360,21 @@ class ActivationWindow(BaseWindow, AsyncMixin):
                 activation_data
             )
 
-            # 检查是否是因为窗口关闭而取消
+            # 检查是否是因为窗口Close而取消
             if self.is_shutdown_requested():
                 self.signal_emitter.emit_status("激活流程已取消")
                 return
 
             if activation_success:
-                self.signal_emitter.emit_status("设备激活成功！")
+                self.signal_emitter.emit_status("设备激活Success！")
                 self._on_activation_success()
             else:
-                self.signal_emitter.emit_status("设备激活失败")
-                self.signal_emitter.emit_error("设备激活失败，请重试")
+                self.signal_emitter.emit_status("设备激活Failure")
+                self.signal_emitter.emit_error("设备激活Failure，请重试")
 
         except Exception as e:
-            self.logger.error(f"激活流程异常: {e}", exc_info=True)
-            self.signal_emitter.emit_error(f"激活异常: {e}")
+            self.logger.error(f"激活流程Exception: {e}", exc_info=True)
+            self.signal_emitter.emit_error(f"激活Exception: {e}")
 
     def _show_activation_info(self, activation_data: dict):
         """
@@ -382,20 +382,20 @@ class ActivationWindow(BaseWindow, AsyncMixin):
         """
         code = activation_data.get("code", "------")
 
-        # 更新设备信息中的激活码
+        # Update设备信息中的激活码
         self.activation_model.update_activation_code(code)
 
         # 信息已在UI界面显示，仅记录简要日志
-        self.logger.info(f"获取激活验证码: {code}")
+        self.logger.info(f"Get激活验证码: {code}")
 
     def _on_activation_success(self):
         """
-        激活成功处理.
+        激活Success处理.
         """
-        # 更新状态显示
+        # Update状态显示
         self.activation_model.set_status_activated()
 
-        # 发射完成信号
+        # 发射Complete信号
         self.activation_completed.emit(True)
         self.is_activated = True
 
@@ -407,21 +407,21 @@ class ActivationWindow(BaseWindow, AsyncMixin):
 
     def _on_error_occurred(self, error_message: str):
         """
-        错误处理.
+        Error处理.
         """
-        self.logger.error(f"错误: {error_message}")
-        self.update_status(f"错误: {error_message}")
+        self.logger.error(f"Error: {error_message}")
+        self.update_status(f"Error: {error_message}")
 
     def _on_data_ready(self, data):
         """
-        数据就绪处理 - 更新设备信息.
+        数据Ready处理 - Update设备信息.
         """
         self.logger.debug(f"收到数据: {data}")
         if isinstance(data, dict):
             serial = data.get("serial_number")
             mac = data.get("mac_address")
             if serial or mac:
-                self.logger.info(f"通过信号更新设备信息: SN={serial}, MAC={mac}")
+                self.logger.info(f"通过信号Update设备信息: SN={serial}, MAC={mac}")
                 self.activation_model.update_device_info(
                     serial_number=serial, mac_address=mac
                 )
@@ -432,7 +432,7 @@ class ActivationWindow(BaseWindow, AsyncMixin):
         """
         self.logger.info("用户点击跳转激活")
 
-        # 从配置中获取激活URL并打开
+        # 从Configuration中Get激活URL并打开
         try:
             from src.utils.common_utils import open_url
             from src.utils.config_manager import ConfigManager
@@ -443,11 +443,11 @@ class ActivationWindow(BaseWindow, AsyncMixin):
                 open_url(ota_url)
                 self.update_status("已打开激活页面，请在浏览器中输入验证码")
             else:
-                self.logger.error("未配置激活URL")
-                self.update_status("错误: 未配置激活URL")
+                self.logger.error("未Configuration激活URL")
+                self.update_status("Error: 未Configuration激活URL")
         except Exception as e:
-            self.logger.error(f"打开激活页面失败: {e}")
-            self.update_status(f"打开激活页面失败: {e}")
+            self.logger.error(f"打开激活页面Failure: {e}")
+            self.update_status(f"打开激活页面Failure: {e}")
 
     def _on_copy_code_clicked(self):
         """
@@ -460,7 +460,7 @@ class ActivationWindow(BaseWindow, AsyncMixin):
                 clipboard.setText(code)
                 self.update_status(f"验证码已复制到剪贴板: {code}")
         else:
-            # 从模型获取激活码
+            # 从模型Get激活码
             code = self.activation_model.activationCode
             if code and code != "--":
                 clipboard = QApplication.clipboard()
@@ -469,17 +469,17 @@ class ActivationWindow(BaseWindow, AsyncMixin):
 
     def update_status(self, message: str):
         """
-        更新状态信息.
+        Update状态信息.
         """
         self.logger.info(message)
 
-        # 如果有状态标签，更新它
+        # 如果有状态标签，Update它
         if hasattr(self, "status_label"):
             self.status_label.setText(message)
 
     def get_activation_result(self) -> dict:
         """
-        获取激活结果.
+        Get激活结果.
         """
         device_fingerprint = None
         config_manager = None
@@ -496,19 +496,19 @@ class ActivationWindow(BaseWindow, AsyncMixin):
 
     async def shutdown_async(self):
         """
-        异步关闭.
+        异步Close.
         """
-        self.logger.info("正在关闭激活窗口...")
+        self.logger.info("正在Close激活窗口...")
 
         # 取消激活流程（如果正在进行）
         if self.device_activator:
             self.device_activator.cancel_activation()
             self.logger.info("已发送激活取消信号")
 
-        # 先清理异步任务
+        # 先Cleanup异步任务
         await self.cleanup_async_tasks()
 
-        # 然后调用父类关闭
+        # 然后调用父类Close
         await super().shutdown_async()
 
     def mousePressEvent(self, event):
@@ -538,7 +538,7 @@ class ActivationWindow(BaseWindow, AsyncMixin):
         应用原生圆角窗口形状.
         """
         try:
-            # 获取窗口尺寸
+            # Get窗口尺寸
             width = self.width()
             height = self.height()
 
@@ -556,15 +556,15 @@ class ActivationWindow(BaseWindow, AsyncMixin):
             )
 
         except Exception as e:
-            self.logger.error(f"应用原生圆角形状失败: {e}")
+            self.logger.error(f"应用原生圆角形状Failure: {e}")
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
 
     def closeEvent(self, event):
         """
-        窗口关闭事件处理.
+        窗口Close事件处理.
         """
-        self.logger.info("激活窗口关闭事件触发")
+        self.logger.info("激活窗口Close事件触发")
         self.window_closed.emit()
         event.accept()

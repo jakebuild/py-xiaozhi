@@ -9,11 +9,11 @@ logger = get_logger(__name__)
 
 
 class ConfigManager:
-    """配置管理器 - 单例模式"""
+    """Configuration管理器 - 单例模式"""
 
     _instance = None
 
-    # 默认配置
+    # 默认Configuration
     DEFAULT_CONFIG = {
         "SYSTEM_OPTIONS": {
             "CLIENT_ID": None,
@@ -48,9 +48,9 @@ class ConfigManager:
         },
         "SHORTCUTS": {
             "ENABLED": True,
-            "MANUAL_PRESS": {"modifier": "ctrl", "key": "j", "description": "按住说话"},
-            "AUTO_TOGGLE": {"modifier": "ctrl", "key": "k", "description": "自动对话"},
-            "ABORT": {"modifier": "ctrl", "key": "q", "description": "中断对话"},
+            "MANUAL_PRESS": {"modifier": "ctrl", "key": "j", "description": "Push-to-talk"},
+            "AUTO_TOGGLE": {"modifier": "ctrl", "key": "k", "description": "Auto Conversation"},
+            "ABORT": {"modifier": "ctrl", "key": "q", "description": "Abort conversation"},
             "MODE_TOGGLE": {"modifier": "ctrl", "key": "m", "description": "切换模式"},
             "WINDOW_TOGGLE": {
                 "modifier": "ctrl",
@@ -88,39 +88,39 @@ class ConfigManager:
 
     def __init__(self):
         """
-        初始化配置管理器.
+        InitializationConfiguration管理器.
         """
         if self._initialized:
             return
         self._initialized = True
 
-        # 初始化配置文件路径
+        # InitializationConfiguration文件路径
         self._init_config_paths()
 
         # 确保必要的目录存在
         self._ensure_required_directories()
 
-        # 加载配置
+        # LoadConfiguration
         self._config = self._load_config()
 
     def _init_config_paths(self):
         """
-        初始化配置文件路径.
+        InitializationConfiguration文件路径.
         """
-        # 使用resource_finder查找或创建配置目录
+        # 使用resource_finder查找或创建Configuration目录
         self.config_dir = resource_finder.find_config_dir()
         if not self.config_dir:
-            # 如果找不到配置目录，在项目根目录下创建
+            # 如果找不到Configuration目录，在项目根目录下创建
             project_root = resource_finder.get_project_root()
             self.config_dir = project_root / "config"
             self.config_dir.mkdir(parents=True, exist_ok=True)
-            logger.info(f"创建配置目录: {self.config_dir.absolute()}")
+            logger.info(f"创建Configuration目录: {self.config_dir.absolute()}")
 
         self.config_file = self.config_dir / "config.json"
 
-        # 记录配置文件路径
-        logger.info(f"配置目录: {self.config_dir.absolute()}")
-        logger.info(f"配置文件: {self.config_file.absolute()}")
+        # 记录Configuration文件路径
+        logger.info(f"Configuration目录: {self.config_dir.absolute()}")
+        logger.info(f"Configuration文件: {self.config_file.absolute()}")
 
     def _ensure_required_directories(self):
         """
@@ -142,55 +142,55 @@ class ConfigManager:
 
     def _load_config(self) -> Dict[str, Any]:
         """
-        加载配置文件，如果不存在则创建.
+        LoadConfiguration文件，如果不存在则创建.
         """
         try:
-            # 首先尝试使用resource_finder查找配置文件
+            # 首先尝试使用resource_finder查找Configuration文件
             config_file_path = resource_finder.find_file("config/config.json")
 
             if config_file_path:
-                logger.debug(f"使用resource_finder找到配置文件: {config_file_path}")
+                logger.debug(f"使用resource_finder找到Configuration文件: {config_file_path}")
                 config = json.loads(config_file_path.read_text(encoding="utf-8"))
                 return self._merge_configs(self.DEFAULT_CONFIG, config)
 
             # 如果resource_finder没找到，尝试使用实例变量中的路径
             if self.config_file.exists():
-                logger.debug(f"使用实例路径找到配置文件: {self.config_file}")
+                logger.debug(f"使用实例路径找到Configuration文件: {self.config_file}")
                 config = json.loads(self.config_file.read_text(encoding="utf-8"))
                 return self._merge_configs(self.DEFAULT_CONFIG, config)
             else:
-                # 创建默认配置文件
-                logger.info("配置文件不存在，创建默认配置")
+                # 创建默认Configuration文件
+                logger.info("Configuration文件不存在，创建默认Configuration")
                 self._save_config(self.DEFAULT_CONFIG)
                 return self.DEFAULT_CONFIG.copy()
 
         except Exception as e:
-            logger.error(f"配置加载错误: {e}")
+            logger.error(f"ConfigurationLoadError: {e}")
             return self.DEFAULT_CONFIG.copy()
 
     def _save_config(self, config: dict) -> bool:
         """
-        保存配置到文件.
+        SaveConfiguration到文件.
         """
         try:
-            # 确保配置目录存在
+            # 确保Configuration目录存在
             self.config_dir.mkdir(parents=True, exist_ok=True)
 
-            # 保存配置文件
+            # SaveConfiguration文件
             self.config_file.write_text(
                 json.dumps(config, indent=2, ensure_ascii=False), encoding="utf-8"
             )
-            logger.debug(f"配置已保存到: {self.config_file}")
+            logger.debug(f"Configuration已Save到: {self.config_file}")
             return True
 
         except Exception as e:
-            logger.error(f"配置保存错误: {e}")
+            logger.error(f"ConfigurationSaveError: {e}")
             return False
 
     @staticmethod
     def _merge_configs(default: dict, custom: dict) -> dict:
         """
-        递归合并配置字典.
+        递归合并Configuration字典.
         """
         result = default.copy()
         for key, value in custom.items():
@@ -206,8 +206,8 @@ class ConfigManager:
 
     def get_config(self, path: str, default: Any = None) -> Any:
         """
-        通过路径获取配置值
-        path: 点分隔的配置路径，如 "SYSTEM_OPTIONS.NETWORK.MQTT_INFO"
+        通过路径GetConfiguration值
+        path: 点分隔的Configuration路径，如 "SYSTEM_OPTIONS.NETWORK.MQTT_INFO"
         """
         try:
             value = self._config
@@ -219,8 +219,8 @@ class ConfigManager:
 
     def update_config(self, path: str, value: Any) -> bool:
         """
-        更新特定配置项
-        path: 点分隔的配置路径，如 "SYSTEM_OPTIONS.NETWORK.MQTT_INFO"
+        Update特定Configuration项
+        path: 点分隔的Configuration路径，如 "SYSTEM_OPTIONS.NETWORK.MQTT_INFO"
         """
         try:
             current = self._config
@@ -230,19 +230,19 @@ class ConfigManager:
             current[last] = value
             return self._save_config(self._config)
         except Exception as e:
-            logger.error(f"配置更新错误 {path}: {e}")
+            logger.error(f"ConfigurationUpdateError {path}: {e}")
             return False
 
     def reload_config(self) -> bool:
         """
-        重新加载配置文件.
+        重新LoadConfiguration文件.
         """
         try:
             self._config = self._load_config()
-            logger.info("配置文件已重新加载")
+            logger.info("Configuration文件已重新Load")
             return True
         except Exception as e:
-            logger.error(f"配置重新加载失败: {e}")
+            logger.error(f"Configuration重新LoadFailure: {e}")
             return False
 
     def generate_uuid(self) -> str:
@@ -253,7 +253,7 @@ class ConfigManager:
 
     def initialize_client_id(self):
         """
-        确保存在客户端ID.
+        确Save在客户端ID.
         """
         if not self.get_config("SYSTEM_OPTIONS.CLIENT_ID"):
             client_id = self.generate_uuid()
@@ -261,27 +261,27 @@ class ConfigManager:
             if success:
                 logger.info(f"已生成新的客户端ID: {client_id}")
             else:
-                logger.error("保存新的客户端ID失败")
+                logger.error("Save新的客户端IDFailure")
 
     def initialize_device_id_from_fingerprint(self, device_fingerprint):
         """
-        从设备指纹初始化设备ID.
+        从设备指纹Initialization设备ID.
         """
         if not self.get_config("SYSTEM_OPTIONS.DEVICE_ID"):
             try:
-                # 从efuse.json获取MAC地址作为DEVICE_ID
+                # 从efuse.jsonGetMAC地址作为DEVICE_ID
                 mac_address = device_fingerprint.get_mac_address_from_efuse()
                 if mac_address:
                     success = self.update_config(
                         "SYSTEM_OPTIONS.DEVICE_ID", mac_address
                     )
                     if success:
-                        logger.info(f"从efuse.json获取DEVICE_ID: {mac_address}")
+                        logger.info(f"从efuse.jsonGetDEVICE_ID: {mac_address}")
                     else:
-                        logger.error("保存DEVICE_ID失败")
+                        logger.error("SaveDEVICE_IDFailure")
                 else:
-                    logger.error("无法从efuse.json获取MAC地址")
-                    # 备用方案：从设备指纹直接获取
+                    logger.error("无法从efuse.jsonGetMAC地址")
+                    # 备用方案：从设备指纹直接Get
                     fingerprint = device_fingerprint.generate_fingerprint()
                     mac_from_fingerprint = fingerprint.get("mac_address")
                     if mac_from_fingerprint:
@@ -294,14 +294,14 @@ class ConfigManager:
                                 f"{mac_from_fingerprint}"
                             )
                         else:
-                            logger.error("保存备用DEVICE_ID失败")
+                            logger.error("Save备用DEVICE_IDFailure")
             except Exception as e:
-                logger.error(f"初始化DEVICE_ID时出错: {e}")
+                logger.error(f"InitializationDEVICE_ID时出错: {e}")
 
     @classmethod
     def get_instance(cls):
         """
-        获取配置管理器实例.
+        GetConfiguration管理器实例.
         """
         if cls._instance is None:
             cls._instance = cls()

@@ -35,7 +35,7 @@ class SystemTray(QObject):
         self.current_status = ""
         self.is_connected = True
 
-        # 初始化托盘
+        # Initialization托盘
         self._setup_tray()
 
     def _setup_tray(self):
@@ -51,11 +51,11 @@ class SystemTray(QObject):
             # 创建托盘菜单
             self._create_tray_menu()
 
-            # 创建系统托盘图标（不绑定 QWidget 作为父对象，避免窗口生命周期影响托盘图标，防止 macOS 下隐藏/关闭时崩溃）
+            # 创建系统托盘图标（不绑定 QWidget 作为父对象，避免窗口生命周期影响托盘图标，防止 macOS 下隐藏/Close时崩溃）
             self.tray_icon = QSystemTrayIcon()
             self.tray_icon.setContextMenu(self.tray_menu)
 
-            # 在显示前设置一个占位图标，避免 QSystemTrayIcon::setVisible: No Icon set 警告
+            # 在显示前设置一个占位图标，避免 QSystemTrayIcon::setVisible: No Icon set Warning
             try:
                 # 使用一个纯色圆点作为初始占位
                 pixmap = QPixmap(16, 16)
@@ -70,23 +70,23 @@ class SystemTray(QObject):
             except Exception:
                 pass
 
-            # 连接托盘图标的事件
+            # Connect托盘图标的事件
             self.tray_icon.activated.connect(self._on_tray_activated)
 
             # 设置初始图标（避免在某些平台第一次绘制引发崩溃，延迟到事件循环空闲时执行）
             try:
                 from PyQt5.QtCore import QTimer
 
-                QTimer.singleShot(0, lambda: self.update_status("待命", connected=True))
+                QTimer.singleShot(0, lambda: self.update_status("Idle", connected=True))
             except Exception:
-                self.update_status("待命", connected=True)
+                self.update_status("Idle", connected=True)
 
             # 显示系统托盘图标
             self.tray_icon.show()
-            self.logger.info("系统托盘图标已初始化")
+            self.logger.info("系统托盘图标已Initialization")
 
         except Exception as e:
-            self.logger.error(f"初始化系统托盘图标失败: {e}", exc_info=True)
+            self.logger.error(f"Initialization系统托盘图标Failure: {e}", exc_info=True)
 
     def _create_tray_menu(self):
         """
@@ -103,15 +103,15 @@ class SystemTray(QObject):
         self.tray_menu.addSeparator()
 
         # 添加设置菜单项
-        settings_action = QAction("参数配置", self.parent_widget)
+        settings_action = QAction("参数Configuration", self.parent_widget)
         settings_action.triggered.connect(self._on_settings)
         self.tray_menu.addAction(settings_action)
 
         # 添加分隔线
         self.tray_menu.addSeparator()
 
-        # 添加退出菜单项
-        quit_action = QAction("退出程序", self.parent_widget)
+        # 添加Exit菜单项
+        quit_action = QAction("Quit", self.parent_widget)
         quit_action.triggered.connect(self._on_quit)
         self.tray_menu.addAction(quit_action)
 
@@ -136,16 +136,16 @@ class SystemTray(QObject):
 
     def _on_quit(self):
         """
-        处理退出菜单项点击.
+        处理Exit菜单项点击.
         """
         self.quit_requested.emit()
 
     def update_status(self, status: str, connected: bool = True):
-        """更新托盘图标状态.
+        """Update托盘图标状态.
 
         Args:
             status: 状态文本
-            connected: 连接状态
+            connected: Connect状态
         """
         if not self.tray_icon:
             return
@@ -175,29 +175,29 @@ class SystemTray(QObject):
             self.tray_icon.setToolTip(tooltip)
 
         except Exception as e:
-            self.logger.error(f"更新系统托盘图标失败: {e}")
+            self.logger.error(f"Update系统托盘图标Failure: {e}")
 
     def _get_status_color(self, status: str, connected: bool) -> QColor:
         """根据状态返回对应的颜色.
 
         Args:
             status: 状态文本
-            connected: 连接状态
+            connected: Connect状态
 
         Returns:
             QColor: 对应的颜色
         """
         if not connected:
-            return QColor(128, 128, 128)  # 灰色 - 未连接
+            return QColor(128, 128, 128)  # 灰色 - Disconnected
 
-        if "错误" in status:
-            return QColor(255, 0, 0)  # 红色 - 错误状态
+        if "Error" in status:
+            return QColor(255, 0, 0)  # 红色 - Error状态
         elif "聆听中" in status:
             return QColor(255, 200, 0)  # 黄色 - 聆听中状态
         elif "说话中" in status:
             return QColor(0, 120, 255)  # 蓝色 - 说话中状态
         else:
-            return QColor(0, 180, 0)  # 绿色 - 待命/已启动状态
+            return QColor(0, 180, 0)  # 绿色 - Idle/Started状态
 
     def show_message(
         self,

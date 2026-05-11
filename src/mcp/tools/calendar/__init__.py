@@ -1,6 +1,6 @@
 """日程管理工具包.
 
-提供完整的日程管理功能，包括事件创建、查询、更新、删除等操作。
+提供完整的日程管理功能，包括事件创建、查询、Update、Delete等操作。
 """
 
 from .database import CalendarDatabase, get_calendar_database

@@ -45,13 +45,13 @@ class AudioWidget(QWidget):
         self.testing_input = False
         self.testing_output = False
 
-        # 初始化UI
+        # InitializationUI
         self._setup_ui()
         self._connect_events()
         self._scan_devices()
         self._load_config_values()
 
-        # 连接线程安全UI更新信号
+        # Connect线程安全UIUpdate信号
         try:
             self.status_message.connect(self._on_status_message)
             self.reset_input_ui.connect(self._reset_input_test_ui)
@@ -69,16 +69,16 @@ class AudioWidget(QWidget):
             ui_path = Path(__file__).parent / "audio_widget.ui"
             uic.loadUi(str(ui_path), self)
 
-            # 获取UI控件引用
+            # GetUI控件引用
             self._get_ui_controls()
 
         except Exception as e:
-            self.logger.error(f"设置音频UI失败: {e}", exc_info=True)
+            self.logger.error(f"设置音频UIFailure: {e}", exc_info=True)
             raise
 
     def _get_ui_controls(self):
         """
-        获取UI控件引用.
+        GetUI控件引用.
         """
         self.ui_controls.update(
             {
@@ -95,7 +95,7 @@ class AudioWidget(QWidget):
 
     def _connect_events(self):
         """
-        连接事件处理.
+        Connect事件处理.
         """
         # 设备选择变更
         if self.ui_controls["input_device_combo"]:
@@ -136,10 +136,10 @@ class AudioWidget(QWidget):
 
     def _update_device_info(self):
         """
-        更新设备信息显示.
+        Update设备信息显示.
         """
         try:
-            # 更新输入设备信息
+            # Update输入设备信息
             input_device_id = self.ui_controls["input_device_combo"].currentData()
             if input_device_id is not None:
                 input_device = next(
@@ -149,11 +149,11 @@ class AudioWidget(QWidget):
                     info_text = f"采样率: {int(input_device['sample_rate'])}Hz, 通道: {input_device['channels']}"
                     self.ui_controls["input_info_label"].setText(info_text)
                 else:
-                    self.ui_controls["input_info_label"].setText("设备信息获取失败")
+                    self.ui_controls["input_info_label"].setText("设备信息GetFailure")
             else:
                 self.ui_controls["input_info_label"].setText("未选择设备")
 
-            # 更新输出设备信息
+            # Update输出设备信息
             output_device_id = self.ui_controls["output_device_combo"].currentData()
             if output_device_id is not None:
                 output_device = next(
@@ -164,12 +164,12 @@ class AudioWidget(QWidget):
                     info_text = f"采样率: {int(output_device['sample_rate'])}Hz, 通道: {output_device['channels']}"
                     self.ui_controls["output_info_label"].setText(info_text)
                 else:
-                    self.ui_controls["output_info_label"].setText("设备信息获取失败")
+                    self.ui_controls["output_info_label"].setText("设备信息GetFailure")
             else:
                 self.ui_controls["output_info_label"].setText("未选择设备")
 
         except Exception as e:
-            self.logger.error(f"更新设备信息失败: {e}", exc_info=True)
+            self.logger.error(f"Update设备信息Failure: {e}", exc_info=True)
 
     def _scan_devices(self):
         """
@@ -182,7 +182,7 @@ class AudioWidget(QWidget):
             self.input_devices.clear()
             self.output_devices.clear()
 
-            # 获取系统默认设备
+            # Get系统默认设备
             default_input = sd.default.device[0] if sd.default.device else None
             default_output = sd.default.device[1] if sd.default.device else None
 
@@ -217,26 +217,26 @@ class AudioWidget(QWidget):
                         }
                     )
 
-            # 更新下拉框
+            # Update下拉框
             self._update_device_combos()
 
             # 自动选择默认设备
             self._select_default_devices()
 
             self._append_status(
-                f"扫描完成: 找到 {len(self.input_devices)} 个输入设备, {len(self.output_devices)} 个输出设备"
+                f"扫描Complete: 找到 {len(self.input_devices)} 个输入设备, {len(self.output_devices)} 个输出设备"
             )
 
         except Exception as e:
-            self.logger.error(f"扫描音频设备失败: {e}", exc_info=True)
-            self._append_status(f"扫描设备失败: {str(e)}")
+            self.logger.error(f"扫描音频设备Failure: {e}", exc_info=True)
+            self._append_status(f"扫描设备Failure: {str(e)}")
 
     def _update_device_combos(self):
         """
-        更新设备下拉框.
+        Update设备下拉框.
         """
         try:
-            # 保存当前选择
+            # Save当前选择
             current_input = self.ui_controls["input_device_combo"].currentData()
             current_output = self.ui_controls["output_device_combo"].currentData()
 
@@ -254,7 +254,7 @@ class AudioWidget(QWidget):
                     device["name"], device["id"]
                 )
 
-            # 尝试恢复之前的选择
+            # 尝试Resume之前的选择
             if current_input is not None:
                 index = self.ui_controls["input_device_combo"].findData(current_input)
                 if index >= 0:
@@ -266,14 +266,14 @@ class AudioWidget(QWidget):
                     self.ui_controls["output_device_combo"].setCurrentIndex(index)
 
         except Exception as e:
-            self.logger.error(f"更新设备下拉框失败: {e}", exc_info=True)
+            self.logger.error(f"Update设备下拉框Failure: {e}", exc_info=True)
 
     def _select_default_devices(self):
         """
         自动选择默认设备（与audio_codec.py的逻辑保持一致）。
         """
         try:
-            # 优先选择配置中的设备，如果没有则选择系统默认设备
+            # 优先选择Configuration中的设备，如果没有则选择系统默认设备
             config_input_id = self.config_manager.get_config(
                 "AUDIO_DEVICES.input_device_id"
             )
@@ -283,7 +283,7 @@ class AudioWidget(QWidget):
 
             # 选择输入设备
             if config_input_id is not None:
-                # 使用配置中的设备
+                # 使用Configuration中的设备
                 index = self.ui_controls["input_device_combo"].findData(config_input_id)
                 if index >= 0:
                     self.ui_controls["input_device_combo"].setCurrentIndex(index)
@@ -296,7 +296,7 @@ class AudioWidget(QWidget):
 
             # 选择输出设备
             if config_output_id is not None:
-                # 使用配置中的设备
+                # 使用Configuration中的设备
                 index = self.ui_controls["output_device_combo"].findData(
                     config_output_id
                 )
@@ -309,11 +309,11 @@ class AudioWidget(QWidget):
                         self.ui_controls["output_device_combo"].setCurrentIndex(i)
                         break
 
-            # 更新设备信息显示
+            # Update设备信息显示
             self._update_device_info()
 
         except Exception as e:
-            self.logger.error(f"选择默认设备失败: {e}", exc_info=True)
+            self.logger.error(f"选择默认设备Failure: {e}", exc_info=True)
 
     def _test_input_device(self):
         """
@@ -340,8 +340,8 @@ class AudioWidget(QWidget):
             test_thread.start()
 
         except Exception as e:
-            self.logger.error(f"测试输入设备失败: {e}", exc_info=True)
-            self._append_status(f"输入设备测试失败: {str(e)}")
+            self.logger.error(f"测试输入设备Failure: {e}", exc_info=True)
+            self._append_status(f"输入设备测试Failure: {str(e)}")
             self._reset_input_test_ui()
 
     def _do_input_test(self, device_id):
@@ -349,12 +349,12 @@ class AudioWidget(QWidget):
         执行输入设备测试.
         """
         try:
-            # 获取设备信息和采样率
+            # Get设备信息和采样率
             input_device = next(
                 (d for d in self.input_devices if d["id"] == device_id), None
             )
             if not input_device:
-                self._append_status_threadsafe("错误: 无法获取设备信息")
+                self._append_status_threadsafe("Error: 无法Get设备信息")
                 return
 
             sample_rate = int(input_device["sample_rate"])
@@ -382,7 +382,7 @@ class AudioWidget(QWidget):
             )
             sd.wait()
 
-            self._append_status_threadsafe("录音完成，正在分析...")
+            self._append_status_threadsafe("录音Complete，正在分析...")
 
             # 分析录音质量
             max_amplitude = np.max(np.abs(recording))
@@ -400,28 +400,28 @@ class AudioWidget(QWidget):
 
             # 测试结果分析
             if max_amplitude < 0.001:
-                self._append_status_threadsafe("[失败] 未检测到音频信号")
+                self._append_status_threadsafe("[Failure] 未检测到音频信号")
                 self._append_status_threadsafe(
-                    "请检查: 1) 麦克风连接 2) 系统音量 3) 麦克风权限"
+                    "请检查: 1) 麦克风Connect 2) 系统音量 3) 麦克风权限"
                 )
             elif max_amplitude > 0.8:
-                self._append_status_threadsafe("[警告] 音频信号过载")
+                self._append_status_threadsafe("[Warning] 音频信号过载")
                 self._append_status_threadsafe("建议降低麦克风增益或音量设置")
             elif activity_ratio < 0.1:
-                self._append_status_threadsafe("[警告] 检测到音频但语音活动较少")
+                self._append_status_threadsafe("[Warning] 检测到音频但语音活动较少")
                 self._append_status_threadsafe(
                     "请确保对着麦克风说话，或检查麦克风灵敏度"
                 )
             else:
-                self._append_status_threadsafe("[成功] 录音测试通过")
+                self._append_status_threadsafe("[Success] 录音测试通过")
                 self._append_status_threadsafe(
                     f"音质数据: 最大音量={max_amplitude:.1%}, 平均音量={rms:.1%}, 活跃度={activity_ratio:.1%}"
                 )
                 self._append_status_threadsafe("麦克风工作正常")
 
         except Exception as e:
-            self.logger.error(f"录音测试失败: {e}", exc_info=True)
-            self._append_status_threadsafe(f"[错误] 录音测试失败: {str(e)}")
+            self.logger.error(f"录音测试Failure: {e}", exc_info=True)
+            self._append_status_threadsafe(f"[Error] 录音测试Failure: {str(e)}")
             if "Permission denied" in str(e) or "access" in str(e).lower():
                 self._append_status_threadsafe(
                     "可能是权限问题，请检查系统麦克风权限设置"
@@ -455,8 +455,8 @@ class AudioWidget(QWidget):
             test_thread.start()
 
         except Exception as e:
-            self.logger.error(f"测试输出设备失败: {e}", exc_info=True)
-            self._append_status(f"输出设备测试失败: {str(e)}")
+            self.logger.error(f"测试输出设备Failure: {e}", exc_info=True)
+            self._append_status(f"输出设备测试Failure: {str(e)}")
             self._reset_output_test_ui()
 
     def _do_output_test(self, device_id):
@@ -464,12 +464,12 @@ class AudioWidget(QWidget):
         执行输出设备测试.
         """
         try:
-            # 获取设备信息和采样率
+            # Get设备信息和采样率
             output_device = next(
                 (d for d in self.output_devices if d["id"] == device_id), None
             )
             if not output_device:
-                self._append_status_threadsafe("错误: 无法获取设备信息")
+                self._append_status_threadsafe("Error: 无法Get设备信息")
                 return
 
             sample_rate = int(output_device["sample_rate"])
@@ -504,7 +504,7 @@ class AudioWidget(QWidget):
             sd.play(audio, samplerate=sample_rate, device=device_id)
             sd.wait()
 
-            self._append_status_threadsafe("播放完成")
+            self._append_status_threadsafe("播放Complete")
             self._append_status_threadsafe(
                 "测试说明: 如果听到清晰的测试音，说明扬声器/耳机工作正常"
             )
@@ -513,8 +513,8 @@ class AudioWidget(QWidget):
             )
 
         except Exception as e:
-            self.logger.error(f"播放测试失败: {e}", exc_info=True)
-            self._append_status_threadsafe(f"[错误] 播放测试失败: {str(e)}")
+            self.logger.error(f"播放测试Failure: {e}", exc_info=True)
+            self._append_status_threadsafe(f"[Error] 播放测试Failure: {str(e)}")
         finally:
             # 重置UI状态（切回主线程）
             self._reset_output_ui_threadsafe()
@@ -531,7 +531,7 @@ class AudioWidget(QWidget):
         try:
             self.reset_input_ui.emit()
         except Exception as e:
-            self.logger.error(f"线程安全重置输入测试UI失败: {e}")
+            self.logger.error(f"线程安全重置输入测试UIFailure: {e}")
 
     def _reset_output_test_ui(self):
         """
@@ -545,7 +545,7 @@ class AudioWidget(QWidget):
         try:
             self.reset_output_ui.emit()
         except Exception as e:
-            self.logger.error(f"线程安全重置输出测试UI失败: {e}")
+            self.logger.error(f"线程安全重置输出测试UIFailure: {e}")
 
     def _append_status(self, message):
         """
@@ -561,7 +561,7 @@ class AudioWidget(QWidget):
                     self.ui_controls["status_text"].verticalScrollBar().maximum()
                 )
         except Exception as e:
-            self.logger.error(f"添加状态信息失败: {e}", exc_info=True)
+            self.logger.error(f"添加状态信息Failure: {e}", exc_info=True)
 
     def _append_status_threadsafe(self, message):
         """
@@ -574,7 +574,7 @@ class AudioWidget(QWidget):
             formatted_message = f"[{current_time}] {message}"
             self.status_message.emit(formatted_message)
         except Exception as e:
-            self.logger.error(f"线程安全追加状态失败: {e}", exc_info=True)
+            self.logger.error(f"线程安全追加状态Failure: {e}", exc_info=True)
 
     def _on_status_message(self, formatted_message: str):
         try:
@@ -586,14 +586,14 @@ class AudioWidget(QWidget):
                 self.ui_controls["status_text"].verticalScrollBar().maximum()
             )
         except Exception as e:
-            self.logger.error(f"状态文本追加失败: {e}")
+            self.logger.error(f"状态文本追加Failure: {e}")
 
     def _load_config_values(self):
         """
-        从配置文件加载值到UI控件.
+        从Configuration文件Load值到UI控件.
         """
         try:
-            # 获取音频设备配置
+            # Get音频设备Configuration
             audio_config = self.config_manager.get_config("AUDIO_DEVICES", {})
 
             # 设置输入设备
@@ -612,21 +612,21 @@ class AudioWidget(QWidget):
                 if index >= 0:
                     self.ui_controls["output_device_combo"].setCurrentIndex(index)
 
-            # 设备信息在设备选择变更时自动更新，无需手动设置
+            # 设备信息在设备选择变更时自动Update，无需手动设置
 
         except Exception as e:
-            self.logger.error(f"加载音频设备配置值失败: {e}", exc_info=True)
+            self.logger.error(f"Load音频设备Configuration值Failure: {e}", exc_info=True)
 
     def get_config_data(self) -> dict:
         """
-        获取当前配置数据.
+        Get当前Configuration数据.
         """
         config_data = {}
 
         try:
             audio_config = {}
 
-            # 输入设备配置
+            # 输入设备Configuration
             input_device_id = self.ui_controls["input_device_combo"].currentData()
             if input_device_id is not None:
                 audio_config["input_device_id"] = input_device_id
@@ -634,7 +634,7 @@ class AudioWidget(QWidget):
                     "input_device_combo"
                 ].currentText()
 
-            # 输出设备配置
+            # 输出设备Configuration
             output_device_id = self.ui_controls["output_device_combo"].currentData()
             if output_device_id is not None:
                 audio_config["output_device_id"] = output_device_id
@@ -642,8 +642,8 @@ class AudioWidget(QWidget):
                     "output_device_combo"
                 ].currentText()
 
-            # 设备的采样率和声道信息由设备自动确定，不需要用户配置
-            # 保存设备的默认采样率和声道用于后续使用
+            # 设备的采样率和声道信息由设备自动确定，不需要用户Configuration
+            # Save设备的默认采样率和声道用于后续使用
             input_device = next(
                 (d for d in self.input_devices if d["id"] == input_device_id), None
             )
@@ -662,7 +662,7 @@ class AudioWidget(QWidget):
                 config_data["AUDIO_DEVICES"] = audio_config
 
         except Exception as e:
-            self.logger.error(f"获取音频设备配置数据失败: {e}", exc_info=True)
+            self.logger.error(f"Get音频设备Configuration数据Failure: {e}", exc_info=True)
 
         return config_data
 
@@ -681,7 +681,7 @@ class AudioWidget(QWidget):
                 self.ui_controls["status_text"].clear()
 
             self._append_status("已重置为默认设置")
-            self.logger.info("音频设备配置已重置为默认值")
+            self.logger.info("音频设备Configuration已重置为默认值")
 
         except Exception as e:
-            self.logger.error(f"重置音频设备配置失败: {e}", exc_info=True)
+            self.logger.error(f"重置音频设备ConfigurationFailure: {e}", exc_info=True)
