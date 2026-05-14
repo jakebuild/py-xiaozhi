@@ -49,11 +49,9 @@ class XiaozhiFaceUI:
         self.space_held = False
         self.is_fullscreen = True
         
-        # Camera Preview State
-        self.camera_active = False
-        self.camera_process = None
-        self.next_photo_to_show = None # For thread-safe handoff
-        self.photo_reference = None    # Keep reference to avoid GC
+        # Gallery State
+        self.gallery_active = False
+        self.gallery_image_path = None
 
         self.background_label = tk.Label(master, bg='black')
         self.background_label.place(x=0, y=0, width=BG_WIDTH, height=BG_HEIGHT)
@@ -93,6 +91,7 @@ class XiaozhiFaceUI:
             self.camera_active = not self.camera_active
         
         if self.camera_active:
+            self.gallery_active = False # Close gallery if camera opens
             print("Starting camera stream...", flush=True)
             cmd = [
                 "rpicam-vid", "-t", "0", 
@@ -141,9 +140,13 @@ class XiaozhiFaceUI:
         return False
 
     def update_animation(self):
+        if self.gallery_active:
+            # Just stay on the current image, check back later
+            self.master.after(500, self.update_animation)
+            return
+
         if self.camera_active:
             if self.next_photo_to_show:
-                # Create PhotoImage ONLY in the main thread to avoid flashing/crashes
                 self.photo_reference = ImageTk.PhotoImage(image=self.next_photo_to_show)
                 self.background_label.config(image=self.photo_reference)
                 self.next_photo_to_show = None
@@ -160,7 +163,10 @@ class XiaozhiFaceUI:
             self.master.after(speed, self.update_animation)
 
     def on_tap(self, event=None):
-        if self.camera_active:
+        if self.gallery_active:
+            # Tap to exit gallery
+            self.gallery_active = False
+        elif self.camera_active:
             if self.capture_and_save():
                 send_ipc("vision_ready")
         else:
@@ -208,6 +214,7 @@ class XiaozhiFaceUI:
                     cmd = msg.get("command")
                     if cmd == "camera_on": self.toggle_camera(True)
                     elif cmd == "camera_off": self.toggle_camera(False)
+                    elif cmd == "gallery_off": self.gallery_active = False
                     elif cmd == "show_image":
                         path = msg.get("path")
                         if path and os.path.exists(path):
@@ -221,8 +228,8 @@ class XiaozhiFaceUI:
                 img = img.resize((BG_WIDTH, BG_HEIGHT), Image.Resampling.LANCZOS)
                 self.photo_reference = ImageTk.PhotoImage(image=img)
                 self.background_label.config(image=self.photo_reference)
-                # Keep it on screen by setting a special state or just pausing animation
-                self.current_state = "thinking" # Placeholder to stop idle animation loop from overwriting
+                self.gallery_active = True
+                self.gallery_image_path = path
         except Exception as e:
             print(f"Failed to display custom image: {e}")
 

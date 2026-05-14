@@ -69,12 +69,52 @@ class SystemToolsManager:
                 add_tool, PropertyList, Property, PropertyType
             )
 
+            # Register图库工具
+            self._register_gallery_tool(
+                add_tool, PropertyList, Property, PropertyType
+            )
+
             self._initialized = True
             logger.info("[SystemManager] 系统工具RegisterComplete")
 
         except Exception as e:
             logger.error(f"[SystemManager] 系统工具RegisterFailure: {e}", exc_info=True)
             raise
+
+    def _register_gallery_tool(
+        self, add_tool, PropertyList, Property, PropertyType
+    ):
+        """
+        Register图库管理工具.
+        """
+        from .gallery import gallery_control
+        gallery_props = PropertyList(
+            [
+                Property("action", PropertyType.STRING, required=True, 
+                         description="The action to perform: 'scan', 'next', 'prev', 'close', 'print'"),
+                Property("query", PropertyType.STRING, 
+                         description="Filter images by name or folder name (used with 'scan' action)"),
+                Property("directory", PropertyType.STRING, 
+                         description="The root directory to scan (default: /home/jake/photos)")
+            ]
+        )
+        add_tool(
+            (
+                "self.image.gallery",
+                "Manage and browse an image gallery on the screen via voice.\n"
+                "Use when user wants to: see photos, show next, go back, filter by name, or close the gallery.\n"
+                "Examples: 'show my photos', 'next photo', 'show the mountain picture', 'close gallery'.\n"
+                "Actions:\n"
+                "- scan: Find and show images (optionally filtered by 'query')\n"
+                "- next: Show the next image in the current list\n"
+                "- prev: Show the previous image\n"
+                "- close: Exit gallery mode and return to face UI\n"
+                "- print: Confirm and print the currently displayed image.",
+                gallery_props,
+                gallery_control,
+            )
+        )
+        logger.debug("[SystemManager] Register图库工具Success")
 
     def _register_volume_control_tool(
         self, add_tool, PropertyList, Property, PropertyType
