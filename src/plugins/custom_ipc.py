@@ -1,12 +1,12 @@
 import asyncio
 import json
 import logging
-from src.core.plugin_manager import BasePlugin
+from src.plugins.base import Plugin
 from src.constants.constants import DeviceState
 
 logger = logging.getLogger(__name__)
 
-class CustomIPCPlugin(BasePlugin):
+class CustomIPCPlugin(Plugin):
     name = 'custom_ipc'
     description = 'UDP IPC for external control and status broadcasting'
     priority = 80  # After UI and shortcuts
