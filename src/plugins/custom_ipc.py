@@ -44,6 +44,12 @@ class CustomIPCPlugin(Plugin):
                     logger.info("Vision photo ready in cache.")
                 elif message == 'ping':
                     self.plugin.broadcast_state(self.app.device_state)
+                elif message == 'exit' or message == 'shutdown':
+                    logger.info("Shutdown command received via IPC. Terminating bot...")
+                    import os
+                    import signal
+                    # Send SIGINT to self to trigger a clean shutdown
+                    os.kill(os.getpid(), signal.SIGINT)
             except Exception as e:
                 logger.error(f"Error processing IPC message: {e}")
 

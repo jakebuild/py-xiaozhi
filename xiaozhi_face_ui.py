@@ -31,7 +31,10 @@ class XiaozhiFaceUI:
         master.title("Xiaozhi Face UI")
         master.attributes('-fullscreen', True)
         master.configure(bg='black')
-        master.bind('<Escape>', lambda e: master.quit())
+        
+        # When closing UI, also stop the bot
+        master.bind('<Escape>', self.quit_app)
+        master.protocol("WM_DELETE_WINDOW", self.quit_app)
 
         master.bind('<Button-1>', self.on_tap)
         master.bind('<KeyPress-space>', self.on_space_press)
@@ -176,6 +179,11 @@ class XiaozhiFaceUI:
     def toggle_fullscreen(self, event=None):
         self.is_fullscreen = not self.is_fullscreen
         self.master.attributes("-fullscreen", self.is_fullscreen)
+
+    def quit_app(self, event=None):
+        print("Exiting and shutting down bot...", flush=True)
+        send_ipc("shutdown")
+        self.master.quit()
 
     def set_state(self, new_state):
         new_state = new_state.lower()
