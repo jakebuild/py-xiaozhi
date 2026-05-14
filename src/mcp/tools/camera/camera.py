@@ -1,28 +1,36 @@
 import threading
-
 import cv2
 import requests
+import os
+import time
+import socket
+import json
 
 from src.utils.config_manager import ConfigManager
 from src.utils.logging_config import get_logger
 
 logger = get_logger(__name__)
 
+# IPC Configuration for communicating with Face UI
+IPC_HOST = "127.0.0.1"
+UI_STATUS_PORT = 9998
+VISION_TMP_PATH = "cache/vision_capture.jpg"
+
 
 class Camera:
     _instance = None
-    _lock = threading.Lock()  # 线程安全
+    _lock = threading.Lock()
 
     def __init__(self):
         self.explain_url = ""
         self.explain_token = ""
-        self.jpeg_data = {"buf": b"", "len": 0}  # 图像的JPEG字节数据  # 字节数据长度
+        self.jpeg_data = {"buf": b"", "len": 0}
 
-        # 从Configuration中读取相机参数
         config = ConfigManager.get_instance()
-        self.camera_index = config.get_config("CAMERA.camera_index", 0)
-        self.frame_width = config.get_config("CAMERA.frame_width", 640)
-        self.frame_height = config.get_config("CAMERA.frame_height", 480)
+        # Use the ZhipuAI settings from config
+        self.explain_url = config.get_config("CAMERA.Local_VL_url", "")
+        self.explain_token = config.get_config("CAMERA.VLapi_key", "")
+        self.model = config.get_config("CAMERA.models", "glm-4v-plus")
 
     @classmethod
     def get_instance(cls):
@@ -32,159 +40,104 @@ class Camera:
                     cls._instance = cls()
         return cls._instance
 
-    def set_explain_url(self, url):
-        """
-        设置解释服务的URL.
-        """
-        self.explain_url = url
-        logger.info(f"Vision service URL set to: {url}")
-
-    def set_explain_token(self, token):
-        """
-        设置解释服务的token.
-        """
-        self.explain_token = token
-        if token:
-            logger.info("Vision service token has been set")
-
-    def set_jpeg_data(self, data_bytes):
-        """
-        设置JPEG图像数据.
-        """
-        self.jpeg_data["buf"] = data_bytes
-        self.jpeg_data["len"] = len(data_bytes)
-
     def capture(self) -> bool:
-        """
-        捕获图像.
-        """
+        """Capture a photo by requesting it from the Face UI via UDP."""
         try:
-            logger.info("Accessing camera...")
+            logger.info("Requesting photo capture from Face UI...")
+            
+            # Send 'capture' command to Face UI via UDP port 9998
+            # (Note: Face UI listens for commands on the status port in our implementation)
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            cmd = json.dumps({"type": "command", "command": "capture"})
+            sock.sendto(cmd.encode(), (IPC_HOST, UI_STATUS_PORT))
+            sock.close()
 
-            # 尝试打开摄像头
-            cap = cv2.VideoCapture(self.camera_index)
-            if not cap.isOpened():
-                logger.error(f"Cannot open camera at index {self.camera_index}")
-                return False
+            # Wait for the file to be saved by the UI (max 3 seconds)
+            start_time = time.time()
+            while time.time() - start_time < 3:
+                if os.path.exists(VISION_TMP_PATH):
+                    # Check if file is recently updated
+                    if time.time() - os.path.getmtime(VISION_TMP_PATH) < 5:
+                        with open(VISION_TMP_PATH, "rb") as f:
+                            self.jpeg_data["buf"] = f.read()
+                            self.jpeg_data["len"] = len(self.jpeg_data["buf"])
+                        logger.info(f"Photo captured from UI (size: {self.jpeg_data['len']} bytes)")
+                        return True
+                time.sleep(0.2)
 
-            # 设置摄像头参数
-            cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.frame_width)
-            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.frame_height)
-
-            # 读取图像
-            ret, frame = cap.read()
-            cap.release()
-
-            if not ret:
-                logger.error("Failed to capture image")
-                return False
-
-            # Get原始图像尺寸
-            height, width = frame.shape[:2]
-
-            # 计算缩放比例，使最长边为320
-            max_dim = max(height, width)
-            scale = 320 / max_dim if max_dim > 320 else 1.0
-
-            # 等比例缩放图像
-            if scale < 1.0:
-                new_width = int(width * scale)
-                new_height = int(height * scale)
-                frame = cv2.resize(
-                    frame, (new_width, new_height), interpolation=cv2.INTER_AREA
-                )
-
-            # 直接将图像编码为JPEG字节流
-            success, jpeg_data = cv2.imencode(".jpg", frame)
-
-            if not success:
-                logger.error("Failed to encode image to JPEG")
-                return False
-
-            # Get字节数据
-            self.jpeg_data["buf"] = jpeg_data.tobytes()
-            self.jpeg_data["len"] = len(self.jpeg_data["buf"])
-            logger.info(
-                f"Image captured successfully (size: {self.jpeg_data['len']} bytes)"
-            )
-            return True
-
-        except Exception as e:
-            logger.error(f"Exception during capture: {e}")
+            logger.error("Face UI failed to provide a photo in time.")
             return False
 
-    def get_device_id(self):
-        """
-        Get设备ID.
-        """
-        return ConfigManager.get_instance().get_config("SYSTEM_OPTIONS.DEVICE_ID")
-
-    def get_client_id(self):
-        """
-        Get客户端ID.
-        """
-        return ConfigManager.get_instance().get_config("SYSTEM_OPTIONS.CLIENT_ID")
+        except Exception as e:
+            logger.error(f"Exception during UI capture: {e}")
+            return False
 
     def explain(self, question: str) -> str:
-        """
-        发送图像分析请求.
-        """
+        """Send image to Vision AI for explanation."""
         if not self.explain_url:
-            return '{"success": false, "message": "Image explain URL is not set"}'
+            return '{"success": false, "message": "Vision API URL not configured"}'
 
         if not self.jpeg_data["buf"]:
-            return '{"success": false, "message": "Camera buffer is empty"}'
+            return '{"success": false, "message": "No photo data available"}'
 
-        # 准备请求头
-        headers = {"Device-Id": self.get_device_id(), "Client-Id": self.get_client_id()}
+        # Prepare headers for ZhipuAI/BigModel or similar
+        headers = {
+            "Authorization": f"Bearer {self.explain_token}" if self.explain_token else ""
+        }
 
-        if self.explain_token:
-            headers["Authorization"] = f"Bearer {self.explain_token}"
-
-        # 准备文件数据
-        files = {
-            "question": (None, question),
-            "file": ("camera.jpg", self.jpeg_data["buf"], "image/jpeg"),
+        # Format for GLM-4V style API (Chat Completions with images)
+        payload = {
+            "model": self.model,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": question or "What is in this picture?"},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{self.encode_image_base64()}"
+                            }
+                        }
+                    ]
+                }
+            ]
         }
 
         try:
-            # 发送请求
-            response = requests.post(
-                self.explain_url, headers=headers, files=files, timeout=10
-            )
+            # Note: The original implementation used a simple POST with files.
+            # Here I'm adapting to a more standard Vision LLM payload.
+            # If the user's endpoint is a custom 'explain' service, we can revert.
+            
+            logger.info(f"Sending photo to vision service: {self.explain_url}")
+            # For now, let's stick to the original multipart/form-data style if it was working
+            files = {
+                "question": (None, question),
+                "file": ("camera.jpg", self.jpeg_data["buf"], "image/jpeg"),
+            }
+            response = requests.post(self.explain_url, headers=headers, files=files, timeout=30)
 
-            # 检查响应状态
             if response.status_code != 200:
-                error_msg = (
-                    f"Failed to upload photo, status code: {response.status_code}"
-                )
-                logger.error(error_msg)
-                return f'{{"success": false, "message": "{error_msg}"}}'
+                return f'{{"success": false, "message": "API Error {response.status_code}: {response.text}"}}'
 
-            # 记录响应
-            logger.info(
-                f"Explain image size={self.jpeg_data['len']}, "
-                f"question={question}\n{response.text}"
-            )
             return response.text
 
-        except requests.RequestException as e:
-            error_msg = f"Failed to connect to explain URL: {str(e)}"
-            logger.error(error_msg)
-            return f'{{"success": false, "message": "{error_msg}"}}'
+        except Exception as e:
+            return f'{{"success": false, "message": "{str(e)}"}}'
+
+    def encode_image_base64(self):
+        import base64
+        return base64.b64encode(self.jpeg_data["buf"]).decode('utf-8')
 
 
 def take_photo(arguments: dict) -> str:
-    """
-    拍照并解释的工具函数.
-    """
+    """Tool function called by the LLM."""
     camera = Camera.get_instance()
-    question = arguments.get("question", "")
+    question = arguments.get("question", "Describe what you see in this photo.")
 
-    # 拍照
-    success = camera.capture()
-    if not success:
-        return '{"success": false, "message": "Failed to capture photo"}'
+    # 1. Capture via UI
+    if not camera.capture():
+        return '{"success": false, "message": "Could not access the camera preview"}'
 
-    # 发送解释请求
+    # 2. Explain via AI
     return camera.explain(question)
