@@ -46,9 +46,11 @@ class XiaozhiFaceUI:
         self.space_held = False
         self.is_fullscreen = True
         
+        # Camera Preview State
         self.camera_active = False
         self.camera_process = None
-        self.latest_frame = None
+        self.next_photo_to_show = None # For thread-safe handoff
+        self.photo_reference = None    # Keep reference to avoid GC
 
         self.background_label = tk.Label(master, bg='black')
         self.background_label.place(x=0, y=0, width=BG_WIDTH, height=BG_HEIGHT)
@@ -88,12 +90,11 @@ class XiaozhiFaceUI:
             self.camera_active = not self.camera_active
         
         if self.camera_active:
-            print("Starting rpicam-vid MJPEG stream...", flush=True)
-            # Use lower res and lower framerate for stability on Pi 3B
+            print("Starting camera stream...", flush=True)
             cmd = [
                 "rpicam-vid", "-t", "0", 
                 "--width", "480", "--height", "360", 
-                "--codec", "mjpeg", "--framerate", "10", 
+                "--codec", "mjpeg", "--framerate", "12", 
                 "--nopreview", "-o", "-"
             ]
             self.camera_process = subprocess.Popen(cmd, stdout=subprocess.PIPE, bufsize=0)
@@ -102,7 +103,8 @@ class XiaozhiFaceUI:
             if self.camera_process:
                 self.camera_process.terminate()
                 self.camera_process = None
-            self.latest_frame = None
+            self.next_photo_to_show = None
+            self.photo_reference = None
 
     def read_camera_stream(self):
         byte_stream = b""
@@ -112,53 +114,44 @@ class XiaozhiFaceUI:
                 if not chunk: break
                 byte_stream += chunk
                 
-                # Search for SOI (0xffd8) and EOI (0xffd9)
-                while True:
-                    a = byte_stream.find(b'\xff\xd8')
-                    b = byte_stream.find(b'\xff\xd9')
-                    if a != -1 and b != -1 and b > a:
-                        jpg = byte_stream[a:b+2]
-                        byte_stream = byte_stream[b+2:]
-                        
-                        # Process frame
-                        frame = cv2.imdecode(np.frombuffer(jpg, dtype=np.uint8), cv2.IMREAD_COLOR)
-                        if frame is not None:
-                            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                            img = Image.fromarray(frame)
-                            img = img.resize((BG_WIDTH, BG_HEIGHT), Image.Resampling.NEAREST)
-                            self.latest_frame = ImageTk.PhotoImage(image=img)
-                    else:
-                        break
-            except Exception as e:
-                print(f"Stream error: {e}", flush=True)
-                break
+                a = byte_stream.find(b'\xff\xd8')
+                b = byte_stream.find(b'\xff\xd9')
+                if a != -1 and b != -1 and b > a:
+                    jpg = byte_stream[a:b+2]
+                    byte_stream = byte_stream[b+2:]
+                    
+                    frame = cv2.imdecode(np.frombuffer(jpg, dtype=np.uint8), cv2.IMREAD_COLOR)
+                    if frame is not None:
+                        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                        img = Image.fromarray(frame)
+                        img = img.resize((BG_WIDTH, BG_HEIGHT), Image.Resampling.NEAREST)
+                        # Store in temp variable, DO NOT create PhotoImage here (not thread-safe)
+                        self.next_photo_to_show = img
+            except Exception: break
 
     def capture_and_save(self):
         if self.camera_active:
-            print("Capturing high-quality snap...", flush=True)
-            # Stop preview temporarily to capture full res
-            was_active = self.camera_active
-            self.toggle_camera(False)
-            
+            print("Capturing snap...", flush=True)
             cmd = ["rpicam-still", "-o", VISION_TMP_PATH, "--width", "1280", "--height", "960", "--immediate", "--nopreview"]
             subprocess.run(cmd)
-            
-            if was_active:
-                self.toggle_camera(True)
             return True
         return False
 
     def update_animation(self):
-        if self.camera_active and self.latest_frame:
-            self.background_label.config(image=self.latest_frame)
-            self.master.after(20, self.update_animation)
+        if self.camera_active:
+            if self.next_photo_to_show:
+                # Create PhotoImage ONLY in the main thread to avoid flashing/crashes
+                self.photo_reference = ImageTk.PhotoImage(image=self.next_photo_to_show)
+                self.background_label.config(image=self.photo_reference)
+                self.next_photo_to_show = None
+            self.master.after(30, self.update_animation)
         else:
             frames = self.animations.get(self.current_state, [])
             if not frames: frames = self.animations.get("idle", [])
             if frames:
                 self.current_frame_index = (self.current_frame_index + 1) % len(frames)
-                self.current_photo = ImageTk.PhotoImage(frames[self.current_frame_index])
-                self.background_label.config(image=self.current_photo)
+                self.photo_reference = ImageTk.PhotoImage(frames[self.current_frame_index])
+                self.background_label.config(image=self.photo_reference)
             
             speed = 50 if self.current_state == "speaking" else 500
             self.master.after(speed, self.update_animation)
