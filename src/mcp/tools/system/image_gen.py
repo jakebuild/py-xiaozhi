@@ -15,19 +15,19 @@ GEN_IMAGE_PATH = "cache/generated_image.jpg"
 
 def generate_image(arguments: dict) -> str:
     """
-    Generate an image based on a prompt and display it on the Face UI.
+    Generate an image using OpenAI DALL-E 3 and display it on the Face UI.
     """
     prompt = arguments.get("prompt", "")
     if not prompt:
         return '{"success": false, "message": "Please provide a prompt for the image."}'
 
     config = ConfigManager.get_instance()
-    api_key = config.get_config("CAMERA.VLapi_key", "")
-    # Note: Using the same ZhipuAI endpoint base if possible, or a specific one for CogView
-    api_url = "https://open.bigmodel.cn/api/paas/v4/images/generations"
+    api_key = config.get_config("OPENAI.api_key", "")
+    model = config.get_config("OPENAI.image_model", "dall-e-3")
+    api_url = "https://api.openai.com/v1/images/generations"
 
     if not api_key:
-        return '{"success": false, "message": "API Key is not configured in config.json."}'
+        return '{"success": false, "message": "OpenAI API Key not configured. Please add it to config.json."}'
 
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -35,22 +35,24 @@ def generate_image(arguments: dict) -> str:
     }
     
     payload = {
-        "model": "cogview-3", # ZhipuAI's generation model
-        "prompt": prompt
+        "model": model,
+        "prompt": prompt,
+        "n": 1,
+        "size": "1024x1024"
     }
 
     try:
-        logger.info(f"Generating image for prompt: {prompt}")
-        response = requests.post(api_url, headers=headers, json=payload, timeout=60)
+        logger.info(f"Generating OpenAI image ({model}) for prompt: {prompt}")
+        response = requests.post(api_url, headers=headers, json=payload, timeout=90)
         
         if response.status_code != 200:
-            return f'{{"success": false, "message": "API Error: {response.text}"}}'
+            return f'{{"success": false, "message": "OpenAI Error: {response.text}"}}'
 
         data = response.json()
         image_url = data.get("data", [{}])[0].get("url")
         
         if not image_url:
-            return '{"success": false, "message": "No image URL returned from API."}'
+            return '{"success": false, "message": "No image URL returned from OpenAI."}'
 
         # Download the image
         img_response = requests.get(image_url)
@@ -68,10 +70,10 @@ def generate_image(arguments: dict) -> str:
             except Exception as e:
                 logger.error(f"Failed to tell UI to show image: {e}")
 
-            return f'{{"success": true, "message": "I have generated the image and showing it on the screen now!", "image_path": "{GEN_IMAGE_PATH}"}}'
+            return f'{{"success": true, "message": "I have created that image for you! You can see it on the screen now.", "image_path": "{GEN_IMAGE_PATH}"}}'
         else:
             return '{"success": false, "message": "Failed to download the generated image."}'
 
     except Exception as e:
-        logger.error(f"Image generation failed: {e}")
+        logger.error(f"OpenAI Image generation failed: {e}")
         return f'{{"success": false, "message": "Error: {str(e)}"}}'

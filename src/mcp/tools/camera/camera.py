@@ -1,10 +1,10 @@
 import threading
-import cv2
 import requests
 import os
 import time
 import socket
 import json
+import base64
 
 from src.utils.config_manager import ConfigManager
 from src.utils.logging_config import get_logger
@@ -22,15 +22,12 @@ class Camera:
     _lock = threading.Lock()
 
     def __init__(self):
-        self.explain_url = ""
-        self.explain_token = ""
         self.jpeg_data = {"buf": b"", "len": 0}
 
         config = ConfigManager.get_instance()
-        # Use the ZhipuAI settings from config
-        self.explain_url = config.get_config("CAMERA.Local_VL_url", "")
-        self.explain_token = config.get_config("CAMERA.VLapi_key", "")
-        self.model = config.get_config("CAMERA.models", "glm-4v-plus")
+        # We'll use a new config key for OpenAI to avoid confusion
+        self.api_key = config.get_config("OPENAI.api_key", "")
+        self.model = config.get_config("OPENAI.vision_model", "gpt-4o")
 
     @classmethod
     def get_instance(cls):
@@ -45,18 +42,14 @@ class Camera:
         try:
             logger.info("Requesting photo capture from Face UI...")
             
-            # Send 'capture' command to Face UI via UDP port 9998
-            # (Note: Face UI listens for commands on the status port in our implementation)
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             cmd = json.dumps({"type": "command", "command": "capture"})
             sock.sendto(cmd.encode(), (IPC_HOST, UI_STATUS_PORT))
             sock.close()
 
-            # Wait for the file to be saved by the UI (max 3 seconds)
             start_time = time.time()
             while time.time() - start_time < 3:
                 if os.path.exists(VISION_TMP_PATH):
-                    # Check if file is recently updated
                     if time.time() - os.path.getmtime(VISION_TMP_PATH) < 5:
                         with open(VISION_TMP_PATH, "rb") as f:
                             self.jpeg_data["buf"] = f.read()
@@ -73,71 +66,65 @@ class Camera:
             return False
 
     def explain(self, question: str) -> str:
-        """Send image to Vision AI for explanation."""
-        if not self.explain_url:
-            return '{"success": false, "message": "Vision API URL not configured"}'
+        """Send image to OpenAI GPT-4o for explanation."""
+        if not self.api_key:
+            return '{"success": false, "message": "OpenAI API Key not configured. Please add it to config.json."}'
 
         if not self.jpeg_data["buf"]:
             return '{"success": false, "message": "No photo data available"}'
 
-        # Prepare headers for ZhipuAI/BigModel or similar
+        api_url = "https://api.openai.com/v1/chat/completions"
         headers = {
-            "Authorization": f"Bearer {self.explain_token}" if self.explain_token else ""
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.api_key}"
         }
 
-        # Format for GLM-4V style API (Chat Completions with images)
+        # Encode image to base64
+        base64_image = base64.b64encode(self.jpeg_data["buf"]).decode('utf-8')
+
         payload = {
             "model": self.model,
             "messages": [
                 {
                     "role": "user",
                     "content": [
-                        {"type": "text", "text": question or "What is in this picture?"},
+                        {
+                            "type": "text", 
+                            "text": question or "Please describe this image in detail."
+                        },
                         {
                             "type": "image_url",
                             "image_url": {
-                                "url": f"data:image/jpeg;base64,{self.encode_image_base64()}"
+                                "url": f"data:image/jpeg;base64,{base64_image}"
                             }
                         }
                     ]
                 }
-            ]
+            ],
+            "max_tokens": 500
         }
 
         try:
-            # Note: The original implementation used a simple POST with files.
-            # Here I'm adapting to a more standard Vision LLM payload.
-            # If the user's endpoint is a custom 'explain' service, we can revert.
+            logger.info(f"Sending photo to OpenAI ({self.model})...")
+            response = requests.post(api_url, headers=headers, json=payload, timeout=60)
             
-            logger.info(f"Sending photo to vision service: {self.explain_url}")
-            # For now, let's stick to the original multipart/form-data style if it was working
-            files = {
-                "question": (None, question),
-                "file": ("camera.jpg", self.jpeg_data["buf"], "image/jpeg"),
-            }
-            response = requests.post(self.explain_url, headers=headers, files=files, timeout=30)
-
             if response.status_code != 200:
-                return f'{{"success": false, "message": "API Error {response.status_code}: {response.text}"}}'
+                return f'{{"success": false, "message": "OpenAI Error {response.status_code}: {response.text}"}}'
 
-            return response.text
+            result = response.json()
+            description = result['choices'][0]['message']['content']
+            return description
 
         except Exception as e:
-            return f'{{"success": false, "message": "{str(e)}"}}'
-
-    def encode_image_base64(self):
-        import base64
-        return base64.b64encode(self.jpeg_data["buf"]).decode('utf-8')
+            return f'{{"success": false, "message": "Failed to call OpenAI: {str(e)}"}}'
 
 
 def take_photo(arguments: dict) -> str:
     """Tool function called by the LLM."""
     camera = Camera.get_instance()
-    question = arguments.get("question", "Describe what you see in this photo.")
+    question = arguments.get("question", "What is in this picture?")
 
-    # 1. Capture via UI
     if not camera.capture():
-        return '{"success": false, "message": "Could not access the camera preview"}'
+        return '{"success": false, "message": "Could not access the camera preview. Make sure Face UI is running and camera is active."}'
 
-    # 2. Explain via AI
     return camera.explain(question)
