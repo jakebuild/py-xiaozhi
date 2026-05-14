@@ -25,9 +25,9 @@ class Camera:
         self.jpeg_data = {"buf": b"", "len": 0}
 
         config = ConfigManager.get_instance()
-        # We'll use a new config key for OpenAI to avoid confusion
-        self.api_key = config.get_config("OPENAI.api_key", "")
-        self.model = config.get_config("OPENAI.vision_model", "gpt-4o")
+        # Security: Prioritize Environment Variable, then fallback to config
+        self.api_key = os.getenv("OPENAI_API_KEY") or config.get_config("OPENAI.api_key", "")
+        self.model = config.get_config("OPENAI.vision_model", "gpt-5.5")
 
     @classmethod
     def get_instance(cls):

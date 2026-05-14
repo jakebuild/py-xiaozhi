@@ -22,8 +22,9 @@ def generate_image(arguments: dict) -> str:
         return '{"success": false, "message": "Please provide a prompt for the image."}'
 
     config = ConfigManager.get_instance()
-    api_key = config.get_config("OPENAI.api_key", "")
-    model = config.get_config("OPENAI.image_model", "dall-e-3")
+    # Security: Prioritize Environment Variable
+    api_key = os.getenv("OPENAI_API_KEY") or config.get_config("OPENAI.api_key", "")
+    model = config.get_config("OPENAI.image_model", "gpt-image-2")
     api_url = "https://api.openai.com/v1/images/generations"
 
     if not api_key:
