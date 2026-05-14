@@ -327,25 +327,25 @@ class AudioCodec:
             # 输入流：使用设备原生采样率和声道数
             self.input_stream = sd.InputStream(
                 device=self.mic_device_id,
-                samplerate=self.device_input_sample_rate,  # 设备原生采样率
-                channels=self.input_channels,  # 设备原生声道数
+                samplerate=self.device_input_sample_rate,
+                channels=self.input_channels,
                 dtype=np.float32,
-                blocksize=self._device_input_frame_size,  # 设备原生帧大小
+                blocksize=self._device_input_frame_size,
                 callback=self._input_callback,
                 finished_callback=self._input_finished_callback,
-                latency="low",
+                latency=0.1,
             )
 
             # 输出流：使用设备原生采样率和声道数
             self.output_stream = sd.OutputStream(
                 device=self.speaker_device_id,
-                samplerate=self.device_output_sample_rate,  # 设备原生采样率
-                channels=self.output_channels,  # 设备原生声道数
+                samplerate=self.device_output_sample_rate,
+                channels=self.output_channels,
                 dtype=np.float32,
-                blocksize=self._device_output_frame_size,  # 设备原生帧大小
+                blocksize=self._device_output_frame_size,
                 callback=self._output_callback,
                 finished_callback=self._output_finished_callback,
-                latency="low",
+                latency=0.1,
             )
 
             self.input_stream.start()
