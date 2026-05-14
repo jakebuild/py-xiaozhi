@@ -38,9 +38,12 @@ class XiaozhiFaceUI:
         master.bind('<KeyPress-space>', self.on_space_press)
         master.bind('<KeyRelease-space>', self.on_space_release)
         # 'x' key to abort
-        master.bind('x', lambda e: send_ipc("abort"))
+        master.bind('x', lambda e: send_ipc(\"abort\"))
+        # 'f' key to toggle fullscreen
+        master.bind('f', self.toggle_fullscreen)
 
-        self.current_state = "idle"
+        self.is_fullscreen = True
+        self.current_state = \"idle\"
         self.animations = {}
         self.current_frame_index = 0
         self.space_held = False
@@ -115,9 +118,14 @@ class XiaozhiFaceUI:
     def set_state(self, new_state):
         new_state = new_state.lower()
         if new_state in self.animations and self.current_state != new_state:
-            print(f"UI State changed -> {new_state}", flush=True)
+            print(f\"UI State changed -> {new_state}\", flush=True)
             self.current_state = new_state
             self.current_frame_index = 0
+
+    def toggle_fullscreen(self, event=None):
+        self.is_fullscreen = not self.is_fullscreen
+        self.master.attributes(\"-fullscreen\", self.is_fullscreen)
+        print(f\"Fullscreen toggled: {self.is_fullscreen}\", flush=True)
 
     def listen_for_status(self):
         """Listen for UDP status updates from the bot on port 9998."""
