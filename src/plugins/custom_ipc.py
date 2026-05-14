@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import socket
 from src.plugins.base import Plugin
 from src.constants.constants import DeviceState
 
@@ -9,7 +10,7 @@ logger = logging.getLogger(__name__)
 class CustomIPCPlugin(Plugin):
     name = 'custom_ipc'
     description = 'UDP IPC for external control and status broadcasting'
-    priority = 80  # After UI and shortcuts
+    priority = 80
     
     def __init__(self):
         super().__init__()
@@ -25,38 +26,38 @@ class CustomIPCPlugin(Plugin):
         def datagram_received(self, data, addr):
             try:
                 message = data.decode().strip()
-                logger.info(f'IPC received: {message} from {addr}')
+                logger.info(f'IPC received: {message}')
                 
-                # Handle simple string commands for backward compatibility
+                # Command mapping
                 if message == 'press':
                     asyncio.create_task(self.app.start_listening_manual())
                 elif message == 'release':
                     asyncio.create_task(self.app.stop_listening_manual())
-                elif message == 'abort' or message == 'stop':
+                elif message in ['abort', 'stop']:
                     from src.constants.constants import AbortReason
                     asyncio.create_task(self.app.abort_speaking(AbortReason.USER_INTERRUPTION))
                 elif message == 'auto_toggle':
                     asyncio.create_task(self.app.start_auto_conversation())
+                elif message == 'vision_ready':
+                    # Face UI has saved a photo, now we can tell the bot to process it
+                    # This could trigger a specific "Describe what you see" prompt
+                    logger.info("Vision photo ready in cache.")
                 elif message == 'ping':
                     self.plugin.broadcast_state(self.app.device_state)
-                
-                # Future: Handle JSON commands
-                try:
-                    cmd_data = json.loads(message)
-                    self.handle_json_command(cmd_data)
-                except json.JSONDecodeError:
-                    pass
             except Exception as e:
                 logger.error(f"Error processing IPC message: {e}")
 
-        def handle_json_command(self, data):
-            cmd = data.get("command")
-            if cmd == "set_volume":
-                # Example: {"command": "set_volume", "value": 70}
-                pass # Implementation depends on how volume is managed
+    def send_ui_command(self, command):
+        """Send a command to the Face UI (e.g., 'camera_on')."""
+        if not self.transport:
+            return
+        try:
+            msg = json.dumps({"type": "command", "command": command})
+            self.transport.sendto(msg.encode(), self.broadcast_addr)
+        except Exception as e:
+            logger.debug(f"Failed to send UI command: {e}")
 
     def broadcast_state(self, state):
-        """Send state to Face UI via UDP."""
         if not self.transport:
             return
         try:
@@ -69,7 +70,6 @@ class CustomIPCPlugin(Plugin):
         self.broadcast_state(state)
 
     async def on_incoming_json(self, message):
-        """Relay interesting JSON messages to Face UI."""
         if not self.transport:
             return
         msg_type = message.get("type")
@@ -95,7 +95,6 @@ class CustomIPCPlugin(Plugin):
                 local_addr=('127.0.0.1', 9999)
             )
             logger.info('Custom IPC plugin started on UDP 9999')
-            # Broadcast initial state
             self.broadcast_state(self.app.device_state)
             return True
         except Exception as e:
