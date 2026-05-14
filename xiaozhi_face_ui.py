@@ -18,13 +18,11 @@ VISION_TMP_PATH = "cache/vision_capture.jpg"
 
 
 def send_ipc(message):
-    """Send a UDP message to the core engine."""
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.sendto(message.encode(), (IPC_HOST, CMD_PORT))
         sock.close()
-    except Exception:
-        pass
+    except Exception: pass
 
 
 class XiaozhiFaceUI:
@@ -35,7 +33,6 @@ class XiaozhiFaceUI:
         master.configure(bg='black')
         master.bind('<Escape>', lambda e: master.quit())
 
-        # Interaction bindings
         master.bind('<Button-1>', self.on_tap)
         master.bind('<KeyPress-space>', self.on_space_press)
         master.bind('<KeyRelease-space>', self.on_space_release)
@@ -49,7 +46,6 @@ class XiaozhiFaceUI:
         self.space_held = False
         self.is_fullscreen = True
         
-        # Camera Preview State
         self.camera_active = False
         self.camera_process = None
         self.latest_frame = None
@@ -60,7 +56,6 @@ class XiaozhiFaceUI:
         self.load_animations()
         self.update_animation()
 
-        # Start UDP status listener
         self.status_thread = threading.Thread(target=self.listen_for_status, daemon=True)
         self.status_thread.start()
 
@@ -78,8 +73,7 @@ class XiaozhiFaceUI:
                         with Image.open(frame_path) as img:
                             img = img.resize((BG_WIDTH, BG_HEIGHT), Image.Resampling.LANCZOS)
                             self.animations[state].append(img.copy())
-                    except Exception:
-                        pass
+                    except Exception: pass
             if not self.animations[state]:
                 if state != "idle" and self.animations.get("idle"):
                     self.animations[state] = self.animations["idle"]
@@ -88,71 +82,76 @@ class XiaozhiFaceUI:
                     self.animations[state].append(blank)
 
     def toggle_camera(self, force_state=None):
-        """Toggle camera using the native rpicam-vid stack."""
         if force_state is not None:
             self.camera_active = force_state
         else:
             self.camera_active = not self.camera_active
         
         if self.camera_active:
-            print("Starting rpicam-vid preview...", flush=True)
-            # Start rpicam-vid outputting MJPEG to stdout
+            print("Starting rpicam-vid MJPEG stream...", flush=True)
+            # Use lower res and lower framerate for stability on Pi 3B
             cmd = [
-                "rpicam-vid", "--t", "0", 
-                "--width", "640", "--height", "480", 
-                "--inline", "--codec", "mjpeg", 
-                "--framerate", "15", "-o", "-"
+                "rpicam-vid", "-t", "0", 
+                "--width", "480", "--height", "360", 
+                "--codec", "mjpeg", "--framerate", "10", 
+                "--nopreview", "-o", "-"
             ]
-            self.camera_process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+            self.camera_process = subprocess.Popen(cmd, stdout=subprocess.PIPE, bufsize=0)
             threading.Thread(target=self.read_camera_stream, daemon=True).start()
         else:
-            print("Stopping rpicam-vid preview.", flush=True)
             if self.camera_process:
                 self.camera_process.terminate()
                 self.camera_process = None
             self.latest_frame = None
 
     def read_camera_stream(self):
-        """Read MJPEG stream from rpicam-vid pipe."""
         byte_stream = b""
         while self.camera_active and self.camera_process:
-            chunk = self.camera_process.stdout.read(4096)
-            if not chunk:
+            try:
+                chunk = self.camera_process.stdout.read(8192)
+                if not chunk: break
+                byte_stream += chunk
+                
+                # Search for SOI (0xffd8) and EOI (0xffd9)
+                while True:
+                    a = byte_stream.find(b'\xff\xd8')
+                    b = byte_stream.find(b'\xff\xd9')
+                    if a != -1 and b != -1 and b > a:
+                        jpg = byte_stream[a:b+2]
+                        byte_stream = byte_stream[b+2:]
+                        
+                        # Process frame
+                        frame = cv2.imdecode(np.frombuffer(jpg, dtype=np.uint8), cv2.IMREAD_COLOR)
+                        if frame is not None:
+                            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                            img = Image.fromarray(frame)
+                            img = img.resize((BG_WIDTH, BG_HEIGHT), Image.Resampling.NEAREST)
+                            self.latest_frame = ImageTk.PhotoImage(image=img)
+                    else:
+                        break
+            except Exception as e:
+                print(f"Stream error: {e}", flush=True)
                 break
-            byte_stream += chunk
-            
-            # Find JPEG markers
-            a = byte_stream.find(b'\xff\xd8')
-            b = byte_stream.find(b'\xff\xd9')
-            if a != -1 and b != -1:
-                jpg = byte_stream[a:b+2]
-                byte_stream = byte_stream[b+2:]
-                try:
-                    # Decode to image
-                    frame = cv2.imdecode(np.frombuffer(jpg, dtype=np.uint8), cv2.IMREAD_COLOR)
-                    if frame is not None:
-                        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                        img = Image.fromarray(frame)
-                        img = img.resize((BG_WIDTH, BG_HEIGHT), Image.Resampling.LANCZOS)
-                        self.latest_frame = ImageTk.PhotoImage(image=img)
-                except Exception as e:
-                    print(f"Decode error: {e}")
 
     def capture_and_save(self):
-        """Save the latest camera frame for the bot."""
-        if self.camera_active and self.latest_frame:
-            # We already have the frame in memory, but we need to save it to disk
-            # For simplicity, we'll just run a quick rpicam-still
+        if self.camera_active:
             print("Capturing high-quality snap...", flush=True)
-            cmd = ["rpicam-still", "-o", VISION_TMP_PATH, "--width", "1280", "--height", "960", "--immediate"]
-            subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            # Stop preview temporarily to capture full res
+            was_active = self.camera_active
+            self.toggle_camera(False)
+            
+            cmd = ["rpicam-still", "-o", VISION_TMP_PATH, "--width", "1280", "--height", "960", "--immediate", "--nopreview"]
+            subprocess.run(cmd)
+            
+            if was_active:
+                self.toggle_camera(True)
             return True
         return False
 
     def update_animation(self):
         if self.camera_active and self.latest_frame:
             self.background_label.config(image=self.latest_frame)
-            self.master.after(30, self.update_animation)
+            self.master.after(20, self.update_animation)
         else:
             frames = self.animations.get(self.current_state, [])
             if not frames: frames = self.animations.get("idle", [])
