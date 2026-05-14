@@ -30,8 +30,8 @@
   },
   "OPENAI": {
     "api_key": "",
-    "vision_model": "gpt-4o",
-    "image_model": "dall-e-3"
+    "vision_model": "gpt-5.5",
+    "image_model": "gpt-image-2"
   },
   "CAMERA": {
     "camera_index": 0,
