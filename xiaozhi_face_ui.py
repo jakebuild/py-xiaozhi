@@ -200,7 +200,23 @@ class XiaozhiFaceUI:
                     cmd = msg.get("command")
                     if cmd == "camera_on": self.toggle_camera(True)
                     elif cmd == "camera_off": self.toggle_camera(False)
+                    elif cmd == "show_image":
+                        path = msg.get("path")
+                        if path and os.path.exists(path):
+                            self.display_custom_image(path)
             except Exception: pass
+
+    def display_custom_image(self, path):
+        """Display a specific image file on the screen."""
+        try:
+            with Image.open(path) as img:
+                img = img.resize((BG_WIDTH, BG_HEIGHT), Image.Resampling.LANCZOS)
+                self.photo_reference = ImageTk.PhotoImage(image=img)
+                self.background_label.config(image=self.photo_reference)
+                # Keep it on screen by setting a special state or just pausing animation
+                self.current_state = "thinking" # Placeholder to stop idle animation loop from overwriting
+        except Exception as e:
+            print(f"Failed to display custom image: {e}")
 
 
 if __name__ == "__main__":

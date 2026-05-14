@@ -64,6 +64,11 @@ class SystemToolsManager:
                 add_tool, PropertyList, Property, PropertyType
             )
 
+            # Register图像生成工具
+            self._register_image_gen_tool(
+                add_tool, PropertyList, Property, PropertyType
+            )
+
             self._initialized = True
             logger.info("[SystemManager] 系统工具RegisterComplete")
 
@@ -262,6 +267,27 @@ class SystemToolsManager:
             )
         )
         logger.debug("[SystemManager] Register打印工具Success")
+
+    def _register_image_gen_tool(
+        self, add_tool, PropertyList, Property, PropertyType
+    ):
+        """
+        Register图像生成工具.
+        """
+        from .image_gen import generate_image
+        gen_props = PropertyList([Property("prompt", PropertyType.STRING)])
+        add_tool(
+            (
+                "self.image.generate",
+                "Generate an artistic image from a text description and show it on screen.\n"
+                "Use when the user says: generate an image, draw, create a picture, imagine, paint.\n"
+                "Examples: 'generate a cat', 'draw a robot', 'create a picture of a sunset'.\n"
+                "Parameter: prompt - The detailed description of the image to generate.",
+                gen_props,
+                generate_image,
+            )
+        )
+        logger.debug("[SystemManager] Register图像生成工具Success")
 
     def is_initialized(self) -> bool:
         """
