@@ -20,6 +20,7 @@ from src.plugins.mcp import McpPlugin
 from src.plugins.shortcuts import ShortcutsPlugin
 from src.plugins.ui import UIPlugin
 from src.plugins.wake_word import WakeWordPlugin
+from src.plugins.custom_ipc import CustomIPCPlugin
 from src.protocols.mqtt_protocol import MqttProtocol
 from src.protocols.websocket_protocol import WebsocketProtocol
 from src.utils.config_manager import ConfigManager
@@ -111,6 +112,7 @@ class Application:
                 CalendarPlugin(),
                 UIPlugin(mode=mode),
                 ShortcutsPlugin(),
+                CustomIPCPlugin(),
             )
             await self.plugins.setup_all(self)
             # Start后广播初始状态，确保 UI Ready时能看到“Idle”
@@ -121,8 +123,6 @@ class Application:
             # await self.connect_protocol()
             # 插件：start
             await self.plugins.start_all()
-            # Start UDP IPC listener for external face UI
-            await self._start_ipc_listener()
             # 等待关停
             await self._wait_shutdown()
             return 0
@@ -186,34 +186,6 @@ class Application:
             self.protocol = WebsocketProtocol()
 
 
-    # -------------------------
-    # UDP IPC listener for external face UI
-    # -------------------------
-    async def _start_ipc_listener(self):
-        """Start a UDP listener on port 9999 for IPC from face UI."""
-        class _IPCProtocol(asyncio.DatagramProtocol):
-            def __init__(self, app):
-                self.app = app
-            def datagram_received(self, data, addr):
-                msg = data.decode().strip()
-                logger.info(f"IPC received: {msg}")
-                loop = asyncio.get_event_loop()
-                if msg == "auto_toggle":
-                    loop.create_task(self.app.start_auto_conversation())
-                elif msg == "press":
-                    loop.create_task(self.app.start_listening_manual())
-                elif msg == "release":
-                    loop.create_task(self.app.stop_listening_manual())
-        try:
-            loop = asyncio.get_running_loop()
-            transport, _ = await loop.create_datagram_endpoint(
-                lambda: _IPCProtocol(self),
-                local_addr=("127.0.0.1", 9999)
-            )
-            self._ipc_transport = transport
-            logger.info("IPC listener started on UDP 127.0.0.1:9999")
-        except Exception as e:
-            logger.error(f"Failed to start IPC listener: {e}")
 
     # -------------------------
     # 手动聆听（Push-to-talk）
