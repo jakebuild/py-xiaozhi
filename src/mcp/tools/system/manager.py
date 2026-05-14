@@ -59,6 +59,11 @@ class SystemToolsManager:
                 add_tool, PropertyList, Property, PropertyType
             )
 
+            # Register打印工具
+            self._register_printer_tool(
+                add_tool, PropertyList, Property, PropertyType
+            )
+
             self._initialized = True
             logger.info("[SystemManager] 系统工具RegisterComplete")
 
@@ -237,6 +242,26 @@ class SystemToolsManager:
             )
         )
         logger.debug("[SystemManager] Register应用程序Close工具Success")
+
+    def _register_printer_tool(
+        self, add_tool, PropertyList, Property, PropertyType
+    ):
+        """
+        Register打印工具.
+        """
+        from .printer import print_photo
+        print_props = PropertyList([])
+        add_tool(
+            (
+                "self.printer.print_photo",
+                "Print the last captured photo to the network printer (Brother_Printer).\n"
+                "Use when the user mentions: print, print photo, send to printer, print it, 打印, 打印照片.\n"
+                "Note: A photo must be captured first using the take_photo tool.",
+                print_props,
+                print_photo,
+            )
+        )
+        logger.debug("[SystemManager] Register打印工具Success")
 
     def is_initialized(self) -> bool:
         """
