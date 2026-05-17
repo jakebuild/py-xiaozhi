@@ -49,6 +49,12 @@ class XiaozhiFaceUI:
         self.space_held = False
         self.is_fullscreen = True
         
+        # Camera Preview State
+        self.camera_active = False
+        self.camera_process = None
+        self.next_photo_to_show = None
+        self.photo_reference = None
+
         # Gallery State
         self.gallery_active = False
         self.gallery_image_path = None
